@@ -1,34 +1,39 @@
 import type { Property } from './api';
+import { geocodeAddress } from './geocodingService';
 
+// Initially set with zero coordinates, will be updated by geocoding
 export const mockProperties: Property[] = [
   {
     id: '1',
-    address: '123 Main St, San Francisco, CA',
-    price: 1250000,
-    bedrooms: 3,
-    bathrooms: 2,
-    sqft: 1850,
-    lat: 37.7749,
-    lng: -122.4194
-  },
-  {
-    id: '2',
-    address: '456 Market St, San Francisco, CA',
-    price: 980000,
-    bedrooms: 2,
-    bathrooms: 2,
-    sqft: 1200,
-    lat: 37.7835,
-    lng: -122.4079
-  },
-  {
-    id: '3',
-    address: '789 Valencia St, San Francisco, CA',
-    price: 1450000,
-    bedrooms: 4,
-    bathrooms: 3,
-    sqft: 2100,
-    lat: 37.7598,
-    lng: -122.4214
+    address: '東京都品川区南大井三丁目11-14',
+    price: 55000000, // 5,500万円
+    bedrooms: 2, // Assumed based on size
+    bathrooms: 1, // Assumed
+    sqft: 452, // Converted from 42.00㎡
+    lat: 0, // Will be filled by geocoding
+    lng: 0, // Will be filled by geocoding
+    propertyName: 'ルーブル大森八番館',
+    floor: '6階部分',
+    areaMeters: 42.00,
+    areaTsubo: 12.70,
+    isJapanese: true
   }
-]; 
+];
+
+// Function to update mock properties with geocoded coordinates
+export const updateMockPropertiesWithCoordinates = async (): Promise<void> => {
+  for (const property of mockProperties) {
+    try {
+      const coordinates = await geocodeAddress(property.address);
+      if (coordinates) {
+        property.lat = coordinates.lat;
+        property.lng = coordinates.lng;
+        console.log(`Updated coordinates for ${property.propertyName}: ${coordinates.lat}, ${coordinates.lng}`);
+      } else {
+        console.warn(`Failed to geocode ${property.address}`);
+      }
+    } catch (error) {
+      console.error(`Error geocoding ${property.address}:`, error);
+    }
+  }
+}; 

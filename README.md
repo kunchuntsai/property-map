@@ -28,25 +28,48 @@ An interactive web application to visualize property listings on a map. Upload p
    cd propertymap
    ```
 
-2. Install dependencies:
+2. Install all dependencies (frontend and backend):
    ```bash
-   # Install frontend dependencies
-   cd frontend
-   npm install
+   npm run install:all
    ```
 
 ### Running the Application
 
-1. Start the frontend development server:
+1. Start both frontend and backend:
    ```bash
-   cd frontend
-   npm run dev
+   npm start
+   ```
+
+   Or run them separately:
+   ```bash
+   # Start the backend server
+   npm run start:backend
+   
+   # In a separate terminal, start the frontend
+   npm run start:frontend
    ```
 
 2. Open your browser and navigate to:
    ```
    http://localhost:5173
    ```
+
+## Project Structure
+
+The application is organized into frontend and backend components:
+
+### Frontend
+
+- React/TypeScript-based web application
+- Interactive map using Google Maps
+- Property list and detail views
+- File and image uploading interface
+
+### Backend
+
+- Express.js server
+- OCR processing for images using Tesseract.js
+- API endpoints for property data and OCR processing
 
 ## User Guide
 
@@ -104,4 +127,27 @@ For Japanese properties, the system can extract and process:
 ## Removing Properties
 
 - Each property in the list has a remove button (×)
-- Click this button to remove a property from the list and map 
+- Click this button to remove a property from the list and map
+
+## Google Maps Integration
+
+This application uses Google Maps for displaying property locations:
+
+1. Obtain a Google Maps API key from the [Google Cloud Platform Console](https://console.cloud.google.com/)
+   - Create a new project or use an existing one
+   - Enable the "Maps JavaScript API" 
+   - Create API credentials (API key)
+   - Set up appropriate restrictions for your API key (HTTP referrers, IP addresses, etc.)
+
+2. Configure your API key using the provided setup script:
+   ```bash
+   ./setup-env.sh
+   ```
+   This will create `.env` files in both the frontend and backend directories.
+
+   Alternatively, you can manually create a `.env` file in the frontend directory:
+   ```
+   VITE_GOOGLE_MAPS_API_KEY=YOUR_ACTUAL_API_KEY_HERE
+   ```
+
+Note: Keep your API key confidential. The `.env` files are already included in `.gitignore` to ensure your API key is not committed to the repository.

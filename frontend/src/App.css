@@ -128,8 +128,23 @@
 }
 
 .property-card.selected {
-  border-color: #0066cc;
-  background-color: #f0f7ff;
+  border-color: #555555;
+  background-color: #444444;
+  color: #f0f0f0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.property-card.selected h3,
+.property-card.selected p {
+  color: #ffffff;
+}
+
+.property-card.selected .remove-property-btn {
+  color: #ffcccc;
+}
+
+.property-card.selected .remove-property-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .property-detail {
@@ -583,4 +598,81 @@
 .property-list-item p {
   margin: 0.3rem 0;
   font-size: 0.9rem;
+}
+
+/* Google Maps InfoWindow styling */
+.info-window-content {
+  padding: 10px;
+  max-width: 250px;
+  font-family: Arial, sans-serif;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* Japanese property specific styling */
+.jp-property {
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.jp-property div {
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+
+/* Make InfoWindow background solid */
+.gm-style-iw.gm-style-iw-c {
+  padding: 0 !important;
+  background-color: white;
+}
+
+/* Make close button bigger */
+.gm-ui-hover-effect {
+  width: 30px !important;
+  height: 30px !important;
+  top: 0px !important;
+  right: 0px !important;
+}
+
+.gm-ui-hover-effect img {
+  width: 20px !important;
+  height: 20px !important;
+  margin: 5px !important;
+}
+
+.info-window-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: bold;
+  padding-right: 30px;
+}
+
+.info-window-content p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.info-window-content div {
+  margin-bottom: 8px;
+}
+
+.jp-property-details {
+  text-align: left;
+  line-height: 1.5;
+}
+
+.jp-property-details p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+
+.jp-property-details p strong {
+  display: inline-block;
+  min-width: 55px;
+  color: #555;
+}
+
+.property-card.selected .jp-property-details p strong {
+  color: #ccc;
 }

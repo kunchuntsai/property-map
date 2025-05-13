@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import PropertyMap from './components/Map'
+import PropertyGoogleMap from './components/GoogleMap'
 import PropertyList from './components/PropertyList'
 import PropertyDetail from './components/PropertyDetail'
 import UnifiedFileUploader from './components/UnifiedFileUploader'
 import { fetchProperties } from './services/api'
 import type { Property } from './services/api'
+import config from './config'
 
 function App() {
   const [properties, setProperties] = useState<Property[]>([])
@@ -76,9 +77,11 @@ function App() {
           ) : error ? (
             <div className="error">{error}</div>
           ) : (
-            <PropertyMap 
+            <PropertyGoogleMap 
               properties={properties} 
-              onSelectProperty={handleSelectProperty} 
+              onSelectProperty={handleSelectProperty}
+              apiKey={config.googleMapsApiKey}
+              selectedProperty={selectedProperty || undefined}
             />
           )}
         </div>

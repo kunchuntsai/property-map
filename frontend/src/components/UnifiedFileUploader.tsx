@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { extractAddressesFromFile } from '../services/simpleFileExtractor';
-import { extractPropertyAddressFromImage, extractPropertyData } from '../services/ocrExtractor';
+import { extractPropertyAddressFromImage, extractPropertyData } from '../services/ocrService';
+import { parseJapanesePropertyListing, processJapanesePropertyListings } from '../services/geocodingService';
 import AddressValidator from './AddressValidator';
 import type { Property } from '../services/api';
 
@@ -129,108 +130,129 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const text = e.target?.result as string;
           const properties: JapanesePropertyListItem[] = [];
           
-          // First method: Split by "物件名:" pattern
-          // This is the expected format in list.txt
-          const propertyBlocks = text.split(/物件名[:：]/);
+          // Use the new parser from geocodingService
+          const parsedProperties = parseJapanesePropertyListing(text);
           
-          // Process each block (skip first which is empty or header)
-          for (let i = 1; i < propertyBlocks.length; i++) {
-            const block = propertyBlocks[i].trim();
-            
-            // Extract property details
-            const nameMatch = block.match(/^(.+?)[\n]/);
-            const addressMatch = block.match(/住所[:：]\s*([^\n]+)/);
-            const floorMatch = block.match(/階数[:：]\s*([^\n]+)/);
-            const sizeMatch = block.match(/面積[:：]\s*([^\n]+)/);
-            const priceMatch = block.match(/価格[:：]\s*([^\n]+)/);
-            
-            if (addressMatch) {
+          // Convert to JapanesePropertyListItem format
+          parsedProperties.forEach(prop => {
+            if (prop.address) {
               properties.push({
-                name: nameMatch ? nameMatch[1].trim() : `Property ${i}`,
-                address: addressMatch[1].trim(),
-                floor: floorMatch ? floorMatch[1].trim() : undefined,
-                size: sizeMatch ? sizeMatch[1].trim() : undefined,
-                price: priceMatch ? priceMatch[1].trim() : undefined
+                name: prop.propertyName || 'Unknown Property',
+                address: prop.address,
+                floor: prop.floor || undefined,
+                size: prop.areaMeters ? `${prop.areaMeters}㎡${prop.areaTsubo ? ` (${prop.areaTsubo}坪)` : ''}` : undefined,
+                price: prop.price ? `${(prop.price / 10000).toLocaleString()}万円` : undefined
               });
             }
-          }
+          });
           
-          // If no properties found yet, try alternative patterns
-          if (properties.length === 0) {
-            // Try looking for the pattern of alternating name/value pairs
-            const lines = text.split('\n').filter(line => line.trim().length > 0);
+          resolve(properties);
+        } catch (error) {
+          console.error('Error parsing property list:', error);
+          // Fallback to the original parser if the new one fails
+          try {
+            // First method: Split by "物件名:" pattern
+            // This is the expected format in list.txt
+            const propertyBlocks = text.split(/物件名[:：]/);
             
-            let currentProperty: Partial<JapanesePropertyListItem> = {};
-            let hasAddress = false;
-            
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i].trim();
+            // Process each block (skip first which is empty or header)
+            for (let i = 1; i < propertyBlocks.length; i++) {
+              const block = propertyBlocks[i].trim();
               
-              // Look for key-value pairs
-              if (line.includes(':') || line.includes('：')) {
-                const [key, value] = line.split(/[:：]/).map(part => part.trim());
-                
-                if (key && value) {
-                  if (key === '物件名' || key === 'マンション名') {
-                    // If we were building a property and it has an address, save it
-                    if (hasAddress && currentProperty.address) {
-                      properties.push({
-                        name: currentProperty.name || 'Unknown Property',
-                        address: currentProperty.address,
-                        floor: currentProperty.floor,
-                        size: currentProperty.size,
-                        price: currentProperty.price
-                      });
-                    }
-                    
-                    // Start a new property
-                    currentProperty = { name: value };
-                    hasAddress = false;
-                  } else if (key === '住所' || key === '所在地') {
-                    currentProperty.address = value;
-                    hasAddress = true;
-                  } else if (key === '階数') {
-                    currentProperty.floor = value;
-                  } else if (key === '面積') {
-                    currentProperty.size = value;
-                  } else if (key === '価格') {
-                    currentProperty.price = value;
-                  }
-                }
+              // Extract property details
+              const nameMatch = block.match(/^(.+?)[\n]/);
+              const addressMatch = block.match(/住所[:：]\s*([^\n]+)/);
+              const floorMatch = block.match(/階数[:：]\s*([^\n]+)/);
+              const sizeMatch = block.match(/面積[:：]\s*([^\n]+)/);
+              const priceMatch = block.match(/価格[:：]\s*([^\n]+)/);
+              
+              if (addressMatch) {
+                properties.push({
+                  name: nameMatch ? nameMatch[1].trim() : `Property ${i}`,
+                  address: addressMatch[1].trim(),
+                  floor: floorMatch ? floorMatch[1].trim() : undefined,
+                  size: sizeMatch ? sizeMatch[1].trim() : undefined,
+                  price: priceMatch ? priceMatch[1].trim() : undefined
+                });
               }
             }
             
-            // Add the last property if it has an address
-            if (hasAddress && currentProperty.address) {
-              properties.push({
-                name: currentProperty.name || 'Unknown Property',
-                address: currentProperty.address,
-                floor: currentProperty.floor,
-                size: currentProperty.size,
-                price: currentProperty.price
-              });
+            // If no properties found yet, try alternative patterns
+            if (properties.length === 0) {
+              // Try looking for the pattern of alternating name/value pairs
+              const lines = text.split('\n').filter(line => line.trim().length > 0);
+              
+              let currentProperty: Partial<JapanesePropertyListItem> = {};
+              let hasAddress = false;
+              
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Look for key-value pairs
+                if (line.includes(':') || line.includes('：')) {
+                  const [key, value] = line.split(/[:：]/).map(part => part.trim());
+                  
+                  if (key && value) {
+                    if (key === '物件名' || key === 'マンション名') {
+                      // If we were building a property and it has an address, save it
+                      if (hasAddress && currentProperty.address) {
+                        properties.push({
+                          name: currentProperty.name || 'Unknown Property',
+                          address: currentProperty.address,
+                          floor: currentProperty.floor,
+                          size: currentProperty.size,
+                          price: currentProperty.price
+                        });
+                      }
+                      
+                      // Start a new property
+                      currentProperty = { name: value };
+                      hasAddress = false;
+                    } else if (key === '住所' || key === '所在地') {
+                      currentProperty.address = value;
+                      hasAddress = true;
+                    } else if (key === '階数') {
+                      currentProperty.floor = value;
+                    } else if (key === '面積') {
+                      currentProperty.size = value;
+                    } else if (key === '価格') {
+                      currentProperty.price = value;
+                    }
+                  }
+                }
+              }
+              
+              // Add the last property if it has an address
+              if (hasAddress && currentProperty.address) {
+                properties.push({
+                  name: currentProperty.name || 'Unknown Property',
+                  address: currentProperty.address,
+                  floor: currentProperty.floor,
+                  size: currentProperty.size,
+                  price: currentProperty.price
+                });
+              }
             }
+            
+            console.log("Extracted properties:", properties);
+            resolve(properties);
+          } catch (err) {
+            reject(err);
           }
-          
-          console.log("Extracted properties:", properties);
-          resolve(properties);
-        } catch (error) {
-          console.error('Error parsing Japanese property list:', error);
-          resolve([]);
         }
       };
       
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsText(file);
     });
   };
 
-  // Get map coordinates for Japanese properties
+  // Helper to get map coordinates for an address
   const getMapCoordinates = (address: string): [number, number] => {
     if (!address) return [35.6812, 139.7671]; // Default Tokyo coordinates
     
@@ -272,52 +294,75 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
     return [35.6812, 139.7671]; // Default Tokyo coordinates
   };
 
-  const handlePropertyListConfirm = () => {
+  const handlePropertyListConfirm = async () => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      setIsLoading(true);
-      
-      // Convert Japanese property list items to Property objects
-      const properties = extractedProperties.map((item, index) => {
-        // Parse price value from Japanese format (e.g., "3,780万円")
-        let priceValue = 0;
-        if (item.price) {
-          // Remove non-numeric characters and convert to number
-          const numericValue = item.price.replace(/[^0-9]/g, '');
-          priceValue = parseInt(numericValue) * 10000; // Convert 万円 to regular yen
-        }
+      // Convert to properties format
+      if (fileInfo?.type === 'text/plain' && fileInputRef.current?.files?.[0]) {
+        const file = fileInputRef.current.files[0];
+        const reader = new FileReader();
         
-        // Parse size value from text (e.g., "30.31㎡ (約9.16坪)")
-        let sizeValue = 0;
-        if (item.size) {
-          // Extract the numeric part before m² or ㎡
-          const numericMatch = item.size.match(/(\d+\.?\d*)/);
-          if (numericMatch) {
-            sizeValue = parseFloat(numericMatch[1]) * 10.7639; // Convert m² to sqft
+        reader.onload = async (e) => {
+          try {
+            const text = e.target?.result as string;
+            
+            // Use the new service to process and geocode the properties
+            const geocodedProperties = await processJapanesePropertyListings(text);
+            
+            if (geocodedProperties.length > 0) {
+              // Notify parent component of the properties
+              onPropertiesExtracted(geocodedProperties);
+              
+              // Reset state
+              resetState();
+            } else {
+              setError('No valid properties found in the list');
+            }
+          } catch (error) {
+            console.error('Error processing property list:', error);
+            setError('Failed to process property list');
+          } finally {
+            setIsLoading(false);
           }
-        }
-        
-        // Get coordinates based on the address
-        const [lat, lng] = getMapCoordinates(item.address);
-        
-        // Create property with full details
-        return {
-          id: `jp-list-${Date.now()}-${index}`,
-          address: item.name ? `${item.name} - ${item.address}` : item.address,
-          price: priceValue || 37800000, // Default if not extracted
-          bedrooms: 2, // Default for Japanese properties
-          bathrooms: 1, 
-          sqft: sizeValue || 307, // Default if not extracted
-          lat,
-          lng
         };
-      });
-      
-      onPropertiesExtracted(properties);
-      handleCancel();
-    } catch (err) {
-      setError('Error importing properties');
-      console.error(err);
-    } finally {
+        
+        reader.onerror = () => {
+          setError('Failed to read file');
+          setIsLoading(false);
+        };
+        
+        reader.readAsText(file);
+      } else {
+        // Fallback to the original method
+        // ... keep the existing code here ...
+        const properties: Property[] = extractedProperties.map((prop, index) => {
+          // Get coordinates for the address
+          const [lat, lng] = getMapCoordinates(prop.address);
+          
+          return {
+            id: `jp-${Date.now()}-${index}`,
+            address: prop.address,
+            price: prop.price ? parseInt(prop.price.replace(/[^\d]/g, '')) * 10000 : 0, // Convert 万円 to JPY
+            bedrooms: 1, // Default values
+            bathrooms: 1,
+            sqft: 0,
+            lat,
+            lng,
+            propertyName: prop.name,
+            floor: prop.floor,
+            isJapanese: true
+          };
+        });
+        
+        onPropertiesExtracted(properties);
+        resetState();
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error confirming property list:', error);
+      setError('Failed to process property list');
       setIsLoading(false);
     }
   };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { extractAddressesFromFile } from '../services/simpleFileExtractor';
-import { extractPropertyAddressFromImage } from '../services/ocrExtractor';
+import { extractPropertyAddressFromImage } from '../services/ocrService';
 import AddressValidator from './AddressValidator';
 import type { Property } from '../services/api';
 

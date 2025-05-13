@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { extractPropertyData } from '../services/ocrExtractor';
+import { extractPropertyData } from '../services/ocrService';
 import type { Property } from '../services/api';
 
 interface JapanesePropertyScannerProps {
