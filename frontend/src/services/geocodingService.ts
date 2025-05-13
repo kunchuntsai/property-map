@@ -120,6 +120,7 @@ export const geocodeProperties = async (properties: Property[]): Promise<Geocode
  * @returns Extracted property data
  */
 export const parseJapanesePropertyListing = (text: string): Partial<Property>[] => {
+  console.log('Parsing Japanese property listing text:', text);
   const properties: Partial<Property>[] = [];
   const propertyBlocks = text.split(/\n\s*\n/); // Split by double newlines
   
@@ -130,6 +131,8 @@ export const parseJapanesePropertyListing = (text: string): Partial<Property>[] 
     const property: Partial<Property> = {
       isJapanese: true
     };
+    
+    console.log('Processing property block:', block);
     
     lines.forEach(line => {
       const trimmedLine = line.trim();
@@ -153,7 +156,16 @@ export const parseJapanesePropertyListing = (text: string): Partial<Property>[] 
           const tsuboMatch = trimmedLine.match(/\((?:約)?(\d+\.?\d*)坪\)/);
           if (tsuboMatch && tsuboMatch[1]) {
             property.areaTsubo = parseFloat(tsuboMatch[1]);
+          } else {
+            // Calculate tsubo if not provided (1 tsubo ≈ 3.306 sq meters)
+            property.areaTsubo = parseFloat((areaMeters / 3.306).toFixed(2));
           }
+          
+          console.log('Extracted area data:', {
+            areaMeters: property.areaMeters,
+            areaTsubo: property.areaTsubo,
+            sqft: property.sqft
+          });
         }
       } else if (trimmedLine.startsWith('価格:')) {
         // Extract price in 万円 and convert to JPY
@@ -183,6 +195,14 @@ export const parseJapanesePropertyListing = (text: string): Partial<Property>[] 
         property.sqft = Math.round(property.areaMeters * 10.764);
       }
       
+      // If areaMeters is not set but sqft is, calculate it
+      if (!property.areaMeters && property.sqft) {
+        property.areaMeters = parseFloat((property.sqft / 10.764).toFixed(2));
+        // Calculate tsubo if not provided (1 tsubo ≈ 3.306 sq meters)
+        property.areaTsubo = parseFloat((property.areaMeters / 3.306).toFixed(2));
+      }
+      
+      console.log('Final property object:', property);
       properties.push(property);
     }
   });
@@ -207,8 +227,8 @@ export const processJapanesePropertyListings = async (text: string): Promise<Pro
     bedrooms: prop.bedrooms || 1,
     bathrooms: prop.bathrooms || 1,
     sqft: prop.sqft || 0,
-    lat: 0,
-    lng: 0,
+    lat: 0, // Will be set by geocoding
+    lng: 0, // Will be set by geocoding
     propertyName: prop.propertyName,
     floor: prop.floor,
     areaMeters: prop.areaMeters,
@@ -216,6 +236,53 @@ export const processJapanesePropertyListings = async (text: string): Promise<Pro
     isJapanese: true
   }));
   
+  console.log("Properties before geocoding:", properties);
+  
   // Geocode all properties
-  return await geocodeProperties(properties);
+  const geocodedProperties = await geocodeProperties(properties);
+  
+  // Validate coordinates to ensure they're in the right range for Japan
+  const validatedProperties = geocodedProperties.map(prop => {
+    console.log(`Validating coordinates for ${prop.propertyName || prop.address}`);
+    console.log(`Current coords: lat=${prop.lat}, lng=${prop.lng}`);
+    
+    // Check if coordinates appear to be in the wrong order
+    // Japan is roughly between 30-46°N latitude and 129-146°E longitude
+    const japanLatRange = prop.lat >= 30 && prop.lat <= 46;
+    const japanLngRange = prop.lng >= 129 && prop.lng <= 146;
+    const reversedJapanLatRange = prop.lng >= 30 && prop.lng <= 46;
+    const reversedJapanLngRange = prop.lat >= 129 && prop.lat <= 146;
+    
+    // Check for coordinates likely swapped
+    const possiblySwapped = 
+      isFinite(prop.lat) && isFinite(prop.lng) &&
+      !japanLatRange && !japanLngRange && // Current values not in Japan's ranges
+      reversedJapanLatRange && reversedJapanLngRange; // But they would be if swapped
+    
+    if (possiblySwapped) {
+      console.log("Coordinates appear to be swapped, correcting order");
+      // Swap coordinates to correct order
+      const tempLat = prop.lat;
+      prop.lat = prop.lng;
+      prop.lng = tempLat;
+      
+      console.log(`Swapped coords: lat=${prop.lat}, lng=${prop.lng}`);
+    }
+    
+    // If coordinates are still invalid, use approximate based on Tokyo area
+    if (!isFinite(prop.lat) || !isFinite(prop.lng) || 
+        !(prop.lat >= 30 && prop.lat <= 46) || // Outside Japan latitude range
+        !(prop.lng >= 129 && prop.lng <= 146)) { // Outside Japan longitude range
+      
+      console.log("Setting default Tokyo area coordinates");
+      // Use coordinates in central Tokyo with slight randomization
+      prop.lat = 35.6762 + (Math.random() - 0.5) * 0.05; 
+      prop.lng = 139.6503 + (Math.random() - 0.5) * 0.05;
+    }
+    
+    console.log(`Final coords: lat=${prop.lat}, lng=${prop.lng}`);
+    return prop;
+  });
+  
+  return validatedProperties;
 }; 

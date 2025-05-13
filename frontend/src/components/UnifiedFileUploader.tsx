@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { extractAddressesFromFile } from '../services/simpleFileExtractor';
 import { extractPropertyAddressFromImage, extractPropertyData } from '../services/ocrService';
-import { parseJapanesePropertyListing, processJapanesePropertyListings } from '../services/geocodingService';
+import { parseJapanesePropertyListing, processJapanesePropertyListings, geocodeAddress } from '../services/geocodingService';
 import AddressValidator from './AddressValidator';
 import type { Property } from '../services/api';
 
@@ -52,6 +52,12 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
     const fileType = file.type;
     const fileName = file.name.toLowerCase();
     
+    console.log('File upload detected:', {
+      name: file.name,
+      type: fileType,
+      size: file.size
+    });
+    
     // Check if file is supported
     if (fileType !== 'application/pdf' && fileType !== 'text/plain' && 
         !fileType.startsWith('image/')) {
@@ -89,11 +95,14 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
           }
         }
       } else if (fileType === 'text/plain') {
+        console.log('Processing text file for Japanese properties');
+        
         // Try to extract Japanese property details first
         const japaneseProperties = await extractJapanesePropertyList(file);
         
         if (japaneseProperties.length > 0) {
           // Found property details in Japanese format
+          console.log('Japanese properties extracted:', japaneseProperties);
           setExtractedProperties(japaneseProperties);
           setShowPropertyList(true);
         } else {
@@ -253,45 +262,47 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
   };
 
   // Helper to get map coordinates for an address
-  const getMapCoordinates = (address: string): [number, number] => {
-    if (!address) return [35.6812, 139.7671]; // Default Tokyo coordinates
-    
-    // Try to extract ward from address for better coordinates
-    const wardMatch = address.match(/(台東区|江戸川区|豊島区|渋谷区|新宿区|千代田区|中央区|港区|文京区|墨田区|目黒区|大田区|世田谷区|中野区|杉並区|荒川区|北区|板橋区|練馬区|足立区|葛飾区|江東区)/);
-    
-    if (wardMatch) {
-      const ward = wardMatch[1];
-      
-      // Approximate coordinates for major Tokyo wards
-      const wardCoordinates: Record<string, [number, number]> = {
-        '台東区': [35.7120, 139.8107],
-        '江戸川区': [35.7060, 139.8680],
-        '豊島区': [35.7283, 139.7190],
-        '渋谷区': [35.6580, 139.7016],
-        '新宿区': [35.6938, 139.7034],
-        '千代田区': [35.6938, 139.7534],
-        '中央区': [35.6698, 139.7727],
-        '港区': [35.6586, 139.7511],
-        '文京区': [35.7080, 139.7520],
-        '墨田区': [35.7083, 139.8022],
-        '目黒区': [35.6414, 139.6981],
-        '大田区': [35.5616, 139.7168],
-        '世田谷区': [35.6465, 139.6533],
-        '中野区': [35.7073, 139.6638],
-        '杉並区': [35.6991, 139.6362],
-        '荒川区': [35.7363, 139.7829],
-        '北区': [35.7552, 139.7354],
-        '板橋区': [35.7618, 139.7091],
-        '練馬区': [35.7357, 139.6512],
-        '足立区': [35.7750, 139.8049],
-        '葛飾区': [35.7448, 139.8469],
-        '江東区': [35.6693, 139.8129]
-      };
-      
-      return wardCoordinates[ward] || [35.6812, 139.7671];
+  const getMapCoordinates = async (address: string, propertyName?: string): Promise<[number, number]> => {
+    if (!address) {
+      console.log("No address provided, using default Tokyo coordinates");
+      return [35.6812, 139.7671]; // Default Tokyo coordinates
     }
     
-    return [35.6812, 139.7671]; // Default Tokyo coordinates
+    console.log(`Getting coordinates for address: ${address}${propertyName ? ` (${propertyName})` : ''}`);
+    
+    try {
+      // For Japanese addresses, ensure Japan is included and properly combine with property name
+      let formattedAddress = address;
+      const isJapanese = address.includes('東京') || address.includes('Tokyo') || address.includes('Japan') || /[一-龯]/.test(address);
+      
+      // For Japanese addresses, include property name in search if available
+      if (isJapanese && propertyName) {
+        formattedAddress = `${formattedAddress} ${propertyName}`;
+        console.log(`Using Japanese address format (address + property name): ${formattedAddress}`);
+      }
+      
+      // If Japanese address doesn't include Japan, add it
+      if (isJapanese && !formattedAddress.includes('Japan') && !formattedAddress.includes('日本')) {
+        formattedAddress += ', Japan';
+      }
+      
+      const coordinates = await geocodeAddress(formattedAddress);
+      if (coordinates) {
+        console.log(`Successfully geocoded ${address} to: [${coordinates.lat}, ${coordinates.lng}]`);
+        return [coordinates.lat, coordinates.lng];
+      }
+    } catch (error) {
+      console.error(`Error geocoding address ${address}:`, error);
+    }
+    
+    // Only fallback if API geocoding fails - with small random offset to prevent stacking
+    const randomLat = (Math.random() - 0.5) * 0.01; 
+    const randomLng = (Math.random() - 0.5) * 0.01;
+    
+    // Default Tokyo coordinates with randomization
+    const defaultCoords: [number, number] = [35.6812 + randomLat, 139.7671 + randomLng];
+    console.log(`API geocoding failed. Using default Tokyo coordinates with random offset: [${defaultCoords[0]}, ${defaultCoords[1]}]`);
+    return defaultCoords;
   };
 
   const handlePropertyListConfirm = async () => {
@@ -307,11 +318,22 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
         reader.onload = async (e) => {
           try {
             const text = e.target?.result as string;
+            console.log('Processing text file content for Japanese properties');
             
             // Use the new service to process and geocode the properties
             const geocodedProperties = await processJapanesePropertyListings(text);
+            console.log('Geocoded properties:', geocodedProperties);
             
             if (geocodedProperties.length > 0) {
+              // Log each property's area information for debugging
+              geocodedProperties.forEach(prop => {
+                console.log(`Property ${prop.propertyName || prop.address} area data:`, {
+                  areaMeters: prop.areaMeters,
+                  areaTsubo: prop.areaTsubo,
+                  sqft: prop.sqft
+                });
+              });
+              
               // Notify parent component of the properties
               onPropertiesExtracted(geocodedProperties);
               
@@ -334,28 +356,58 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
         };
         
         reader.readAsText(file);
-      } else {
-        // Fallback to the original method
-        // ... keep the existing code here ...
-        const properties: Property[] = extractedProperties.map((prop, index) => {
-          // Get coordinates for the address
-          const [lat, lng] = getMapCoordinates(prop.address);
+      } else if (extractedProperties.length > 0) {
+        // Fallback to the original method if we have extracted properties but not from a text file
+        console.log('Using fallback method for extracted properties');
+        
+        // Process each property and get coordinates (now async)
+        const properties: Property[] = [];
+        
+        for (const prop of extractedProperties) {
+          // Get coordinates for the address - include property name for Japanese addresses
+          const [lat, lng] = await getMapCoordinates(prop.address, prop.name);
           
-          return {
-            id: `jp-${Date.now()}-${index}`,
+          // Parse area information if available
+          let areaMeters: number | undefined;
+          let areaTsubo: number | undefined;
+          let sqft = 0;
+          
+          if (prop.size) {
+            // Try to extract square meters from size string
+            const match = prop.size.match(/(\d+\.?\d*)㎡/);
+            if (match && match[1]) {
+              areaMeters = parseFloat(match[1]);
+              // Calculate tsubo (1 tsubo ≈ 3.306 sq meters)
+              areaTsubo = parseFloat((areaMeters / 3.306).toFixed(2));
+              // Convert to sqft (1 sq meter = 10.764 sq ft)
+              sqft = Math.round(areaMeters * 10.764);
+              
+              console.log(`Extracted area from "${prop.size}":`, {
+                areaMeters,
+                areaTsubo,
+                sqft
+              });
+            }
+          }
+          
+          properties.push({
+            id: `jp-${Date.now()}-${properties.length}`,
             address: prop.address,
             price: prop.price ? parseInt(prop.price.replace(/[^\d]/g, '')) * 10000 : 0, // Convert 万円 to JPY
             bedrooms: 1, // Default values
             bathrooms: 1,
-            sqft: 0,
+            sqft,
             lat,
             lng,
             propertyName: prop.name,
             floor: prop.floor,
+            areaMeters,
+            areaTsubo,
             isJapanese: true
-          };
-        });
+          });
+        }
         
+        console.log('Final processed properties:', properties);
         onPropertiesExtracted(properties);
         resetState();
         setIsLoading(false);
@@ -400,8 +452,11 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
           }
         }
         
-        // Get coordinates based on the address
-        const [lat, lng] = getMapCoordinates(address);
+        // Get coordinates based on the address - include building/property name for Japanese addresses
+        const [lat, lng] = await getMapCoordinates(
+          address, 
+          extractedData.buildingType || undefined
+        );
         
         // Create a property object with the extracted data
         const property: Property = {
@@ -418,16 +473,24 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
         onPropertyExtracted(property);
       } else {
         // Multiple addresses or PDF/text file - convert to properties
-        const properties = validAddresses.map((address, index) => {
+        const properties: Property[] = [];
+        
+        for (const address of validAddresses) {
           // For Japanese addresses, generate coordinates around Tokyo
           const isJapaneseAddress = /[一-龯]/.test(address) || address.includes('東京');
           
-          const [lat, lng] = isJapaneseAddress 
-            ? getMapCoordinates(address)
-            : [37.7749 + (Math.random() - 0.5) * 0.1, -122.4194 + (Math.random() - 0.5) * 0.1];
+          let lat, lng;
+          if (isJapaneseAddress) {
+            // For Japanese addresses, use the geocoding service
+            [lat, lng] = await getMapCoordinates(address);
+          } else {
+            // For non-Japanese addresses, use random coordinates near San Francisco
+            lat = 37.7749 + (Math.random() - 0.5) * 0.1;
+            lng = -122.4194 + (Math.random() - 0.5) * 0.1;
+          }
           
-          return {
-            id: `file-${Date.now()}-${index}`,
+          properties.push({
+            id: `file-${Date.now()}-${properties.length}`,
             address,
             price: Math.floor(Math.random() * 1000000) + 500000,
             bedrooms: Math.floor(Math.random() * 4) + 1,
@@ -435,8 +498,8 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             sqft: Math.floor(Math.random() * 2000) + 800,
             lat,
             lng
-          };
-        });
+          });
+        }
         
         onPropertiesExtracted(properties);
       }
@@ -458,6 +521,22 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
     setShowValidator(false);
     setShowPropertyList(false);
     setFileInfo(null);
+    
+    // Reset the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Helper function to reset the component state
+  const resetState = () => {
+    setExtractedData(null);
+    setExtractedAddresses([]);
+    setExtractedProperties([]);
+    setShowValidator(false);
+    setShowPropertyList(false);
+    setFileInfo(null);
+    setError(null);
     
     // Reset the file input
     if (fileInputRef.current) {

@@ -124,6 +124,28 @@ For Japanese properties, the system can extract and process:
 - Size (面積) - Automatically converts from ㎡ to sqft
 - Floor information (階数)
 
+## Map Sharing
+
+Share your property map with others using Google Maps Lists:
+
+1. **Create a Google Maps List**:
+   - Click the "Create Google Maps List" button
+   - Enter a name for your list (e.g., "My Property List")
+   - Click "Create Google Maps List" to proceed
+
+2. **Follow the steps to create your shareable list**:
+   - Click "Download KML File" to export your properties
+   - Click "Open Google My Maps" to launch Google Maps
+   - In Google My Maps, click "Import" and select the KML file you just downloaded
+   - Your properties will be imported as a map with all locations
+   - Click "Share" to get a shareable link
+
+3. **Share with others**:
+   - Use the shareable link from Google Maps to share your property list
+   - Recipients can view all your selected properties on Google Maps
+
+Note: This is the closest way to create a true Google Maps list that can be shared with a short URL.
+
 ## Removing Properties
 
 - Each property in the list has a remove button (×)
@@ -151,3 +173,13 @@ This application uses Google Maps for displaying property locations:
    ```
 
 Note: Keep your API key confidential. The `.env` files are already included in `.gitignore` to ensure your API key is not committed to the repository.
+
+## Todo List
+
+The following items are planned for future development:
+
+- OCR functionality needs verification
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

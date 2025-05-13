@@ -198,12 +198,16 @@
   font-size: 1.2rem;
   margin-top: 0;
   margin-bottom: 1rem;
-  color: #333;
+  color: #000000;
+}
+
+.unified-file-uploader p {
+  color: #000000;
 }
 
 .unified-file-uploader .hint {
   font-size: 0.85rem;
-  color: #666;
+  color: #000000;
   margin-top: 0.5rem;
 }
 
@@ -220,7 +224,7 @@
 
 .unified-file-uploader .image-name {
   font-size: 0.8rem;
-  color: #666;
+  color: #000000;
   margin-top: 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -266,6 +270,15 @@
   margin-bottom: 2rem;
 }
 
+.address-validator h2,
+.address-validator h3,
+.address-validator p,
+.address-validator .address-item label,
+.address-validator .selected-addresses li,
+.address-validator .no-addresses {
+  color: #000000;
+}
+
 .address-list {
   max-height: 300px;
   overflow-y: auto;
@@ -306,7 +319,7 @@
 
 .btn-cancel {
   background-color: #f5f5f5;
-  color: #333;
+  color: #000000;
 }
 
 .btn-confirm {
@@ -321,7 +334,7 @@
 
 .no-addresses {
   text-align: center;
-  color: #888;
+  color: #000000;
   padding: 1rem;
 }
 
@@ -592,12 +605,17 @@
   margin-top: 0;
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
-  color: #333;
+  color: #000000;
 }
 
 .property-list-item p {
   margin: 0.3rem 0;
   font-size: 0.9rem;
+  color: #000000;
+}
+
+.property-list-item p strong {
+  color: #000000;
 }
 
 /* Google Maps InfoWindow styling */
@@ -675,4 +693,500 @@
 
 .property-card.selected .jp-property-details p strong {
   color: #ccc;
+}
+
+/* Property List Actions */
+.property-list-actions {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.action-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: #0069d9;
+}
+
+.action-button:disabled {
+  background-color: #b3d7ff;
+  cursor: not-allowed;
+}
+
+.export-button {
+  background-color: #28a745;
+}
+
+.export-button:hover {
+  background-color: #218838;
+}
+
+.export-button:disabled {
+  background-color: #8eda99;
+}
+
+.import-button {
+  background-color: #6c757d;
+}
+
+.import-button:hover {
+  background-color: #5a6268;
+}
+
+.share-button {
+  background-color: #fd7e14;
+}
+
+.share-button:hover {
+  background-color: #e06500;
+}
+
+.share-button:disabled {
+  background-color: #ffc591;
+}
+
+.importing-status {
+  margin-top: 10px;
+  color: #007bff;
+  font-style: italic;
+}
+
+.import-error {
+  margin-top: 10px;
+  color: #dc3545;
+  padding: 10px;
+  background-color: #f8d7da;
+  border-radius: 4px;
+}
+
+.google-maps-url-container {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #444444;
+  border: 1px solid #555555;
+  border-radius: 8px;
+  position: relative;
+  color: #f0f0f0;
+}
+
+.google-maps-url-container h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.url-display {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.url-display input {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px 0 0 4px;
+  font-size: 14px;
+}
+
+.copy-button {
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  background-color: #0069d9;
+}
+
+.url-info {
+  margin-bottom: 15px;
+}
+
+.url-info p {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.url-info a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.url-info a:hover {
+  text-decoration: underline;
+}
+
+.close-button {
+  padding: 6px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background-color: #5a6268;
+}
+
+.list-name-input {
+  margin-bottom: 20px;
+}
+
+.list-name-input label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #f0f0f0;
+}
+
+.list-name-input input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #666666;
+  background-color: #333333;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.generate-button {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 20px;
+  transition: background-color 0.2s;
+}
+
+.generate-button:hover {
+  background-color: #e06500;
+}
+
+.generate-button:disabled {
+  background-color: #ffc591;
+  cursor: not-allowed;
+}
+
+.url-note {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.maps-list-explanation {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #dee2e6;
+}
+
+.maps-list-explanation p {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.toggle-instructions-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.toggle-instructions-button:hover {
+  background-color: #5a6268;
+}
+
+.manual-instructions {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+}
+
+.manual-instructions ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.manual-instructions li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.manual-instructions ul {
+  padding-left: 20px;
+  margin: 5px 0;
+}
+
+.manual-instructions ul li {
+  margin-bottom: 5px;
+}
+
+.copy-properties-button {
+  display: block;
+  width: 100%;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-top: 15px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.copy-properties-button:hover {
+  background-color: #218838;
+}
+
+.copy-properties-button:disabled {
+  background-color: #8eda99;
+  cursor: not-allowed;
+}
+
+.copy-hint {
+  font-size: 12px;
+  color: #6c757d;
+  font-style: italic;
+  margin-top: 5px;
+}
+
+.alternate-options {
+  margin-bottom: 20px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.alternate-options h5 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.alternate-options p {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.url-result {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.kml-button {
+  display: block;
+  width: 100%;
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.kml-button:hover {
+  background-color: #e06500;
+}
+
+.kml-button:disabled {
+  background-color: #ffc591;
+  cursor: not-allowed;
+}
+
+.map-creation-options {
+  margin-bottom: 20px;
+}
+
+.kml-instructions {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #e8f4ff;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.kml-instructions h5 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #0066cc;
+}
+
+.kml-instructions p {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.kml-instructions ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.kml-instructions li {
+  margin-bottom: 6px;
+}
+
+.kml-instructions a {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.kml-instructions a:hover {
+  text-decoration: underline;
+}
+
+.toggle-instructions {
+  margin-bottom: 15px;
+}
+
+.toggle-instructions button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.toggle-instructions button:hover {
+  background-color: #5a6268;
+}
+
+.create-map-button {
+  display: block;
+  width: 100%;
+  background-color: #4285F4; /* Google blue */
+  color: white;
+  border: none;
+  padding: 12px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.create-map-button:hover {
+  background-color: #3367D6; /* Darker Google blue */
+}
+
+.create-map-button:disabled {
+  background-color: #a6c5fa;
+  cursor: not-allowed;
+}
+
+.mymaps-instructions {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #333333;
+  border: 1px solid #555555;
+  border-radius: 8px;
+  color: #f0f0f0;
+}
+
+.mymaps-instructions h5 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #4ca3ff; /* Lighter Google blue for dark theme */
+}
+
+.mymaps-instructions p {
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #f0f0f0;
+}
+
+.mymaps-instructions ol {
+  margin: 0 0 15px 0;
+  padding-left: 20px;
+}
+
+.mymaps-instructions li {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.download-kml-button, .open-mymaps-button {
+  background-color: #333333;
+  color: #4ca3ff;
+  border: 1px solid #4ca3ff;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  margin: 5px 0;
+  transition: all 0.2s;
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.download-kml-button:hover, .open-mymaps-button:hover {
+  background-color: #444444;
+}
+
+.share-info {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.share-info p {
+  margin: 0;
+  color: #cccccc;
 }

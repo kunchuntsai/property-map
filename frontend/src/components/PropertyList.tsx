@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { Property } from '../services/api';
 
 interface PropertyListProps {
@@ -14,6 +14,11 @@ const PropertyList: React.FC<PropertyListProps> = ({
   onRemoveProperty,
   selectedProperty 
 }) => {
+  // Log properties for debugging
+  useEffect(() => {
+    console.log('PropertyList received properties:', properties);
+  }, [properties]);
+
   // Helper function to determine if a property is Japanese
   const isJapaneseProperty = (property: Property) => {
     return (property.isJapanese || 
@@ -34,33 +39,35 @@ const PropertyList: React.FC<PropertyListProps> = ({
 
   // Helper to format area in Japanese style (㎡ and 坪)
   const formatJapaneseArea = (property: Property) => {
-    let areaMeters = property.areaMeters;
-    let areaTsubo = property.areaTsubo;
+    console.log('Formatting area for property:', property.id, property.propertyName);
+    console.log('Area data:', {
+      areaMeters: property.areaMeters,
+      areaTsubo: property.areaTsubo,
+      sqft: property.sqft
+    });
     
-    // If we don't have square meters but have sqft, convert
-    if (!areaMeters && property.sqft) {
-      areaMeters = parseFloat((property.sqft / 10.764).toFixed(2));
+    // First check if we have area in square meters
+    if (property.areaMeters) {
+      const areaTsubo = property.areaTsubo || (property.areaMeters / 3.306);
+      return `${property.areaMeters.toFixed(2)}㎡ (約${areaTsubo.toFixed(2)}坪)`;
     }
     
-    // If we don't have tsubo but have square meters, convert
-    if (!areaTsubo && areaMeters) {
-      areaTsubo = parseFloat((areaMeters / 3.306).toFixed(2));
-    }
-    
-    if (areaMeters && areaTsubo) {
-      return `${areaMeters.toFixed(2)}㎡ (約${areaTsubo.toFixed(2)}坪)`;
-    } else if (areaMeters) {
-      return `${areaMeters.toFixed(2)}㎡`;
-    } else if (property.sqft) {
-      // Default fallback - convert sqft to both units
-      const meters = parseFloat((property.sqft / 10.764).toFixed(2));
-      const tsubo = parseFloat((meters / 3.306).toFixed(2));
+    // If no areaMeters but have sqft, convert
+    if (property.sqft && property.sqft > 0) {
+      const meters = property.sqft / 10.764;
+      const tsubo = meters / 3.306;
       return `${meters.toFixed(2)}㎡ (約${tsubo.toFixed(2)}坪)`;
     }
     
-    // Special case for AXAS Komagome Luxease
-    if (property.address.includes('駒込') || property.propertyName?.includes('AXAS駒込')) {
-      return '30.31㎡ (約9.16坪)';
+    // If we can parse areaMeters from the floor field as a fallback
+    // Sometimes area might be included in the floor description
+    if (property.floor && property.floor.includes('㎡')) {
+      const match = property.floor.match(/(\d+\.?\d*)㎡/);
+      if (match && match[1]) {
+        const areaMeters = parseFloat(match[1]);
+        const areaTsubo = areaMeters / 3.306;
+        return `${areaMeters.toFixed(2)}㎡ (約${areaTsubo.toFixed(2)}坪)`;
+      }
     }
     
     return 'N/A';
@@ -74,34 +81,23 @@ const PropertyList: React.FC<PropertyListProps> = ({
   
   // Get property name for Japanese properties
   const getPropertyName = (property: Property) => {
-    if (property.propertyName) {
-      return property.propertyName;
-    }
-    
-    // For specific known properties
-    if (property.address.includes('品川区南大井') || property.address.includes('南大井三丁目')) {
-      return 'ルーブル大森八番館';
-    } else if (property.address.includes('駒込') || property.address.includes('豊島区駒込')) {
-      return 'AXAS駒込Luxease';
-    }
-    
-    return '-';
+    return property.propertyName || '-';
   };
   
   // Get floor information for Japanese properties
   const getFloor = (property: Property) => {
-    if (property.floor) {
-      return property.floor;
+    return property.floor || '-';
+  };
+  
+  // Fix and normalize property data if necessary
+  const normalizePropertyData = (property: Property) => {
+    // Ensure all required properties exist
+    if (property.isJapanese && !property.areaMeters && property.sqft && property.sqft > 0) {
+      // If missing areaMeters but have sqft, calculate it
+      property.areaMeters = +(property.sqft / 10.764).toFixed(2);
+      property.areaTsubo = +(property.areaMeters / 3.306).toFixed(2);
     }
-    
-    // For specific known properties
-    if (property.address.includes('品川区南大井') || property.address.includes('南大井三丁目')) {
-      return '6階部分';
-    } else if (property.address.includes('駒込') || property.address.includes('豊島区駒込')) {
-      return '6階';
-    }
-    
-    return '-';
+    return property;
   };
   
   return (
@@ -110,6 +106,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
       <div className="property-cards">
         {properties.map(property => {
           const isJapanese = isJapaneseProperty(property);
+          const normalizedProperty = normalizePropertyData(property);
           
           return (
             <div 
@@ -118,7 +115,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
               onClick={() => onSelectProperty(property)}
             >
               <div className="property-card-header">
-                <h3>{formatPrice(property)}</h3>
+                <h3>{formatPrice(normalizedProperty)}</h3>
                 <button 
                   className="remove-property-btn" 
                   onClick={(e) => handleRemoveClick(e, property.id)}
@@ -131,16 +128,16 @@ const PropertyList: React.FC<PropertyListProps> = ({
               {isJapanese ? (
                 // Japanese property format
                 <div className="jp-property-details">
-                  <p><strong>物件名:</strong> {getPropertyName(property)}</p>
-                  <p><strong>住所:</strong> {property.address}</p>
-                  <p><strong>階数:</strong> {getFloor(property)}</p>
-                  <p><strong>面積:</strong> {formatJapaneseArea(property)}</p>
+                  <p><strong>物件名:</strong> {getPropertyName(normalizedProperty)}</p>
+                  <p><strong>住所:</strong> {normalizedProperty.address}</p>
+                  <p><strong>階数:</strong> {getFloor(normalizedProperty)}</p>
+                  <p><strong>面積:</strong> {formatJapaneseArea(normalizedProperty)}</p>
                 </div>
               ) : (
                 // Standard property format
                 <>
-                  <p>{property.address}</p>
-                  <p>{property.bedrooms} bd | {property.bathrooms} ba | {property.sqft} sqft</p>
+                  <p>{normalizedProperty.address}</p>
+                  <p>{normalizedProperty.bedrooms} bd | {normalizedProperty.bathrooms} ba | {normalizedProperty.sqft} sqft</p>
                 </>
               )}
             </div>

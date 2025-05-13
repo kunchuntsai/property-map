@@ -4,6 +4,7 @@ import PropertyGoogleMap from './components/GoogleMap'
 import PropertyList from './components/PropertyList'
 import PropertyDetail from './components/PropertyDetail'
 import UnifiedFileUploader from './components/UnifiedFileUploader'
+import PropertyListActions from './components/PropertyListActions'
 import { fetchProperties } from './services/api'
 import type { Property } from './services/api'
 import config from './config'
@@ -50,6 +51,10 @@ function App() {
       setSelectedProperty(null)
     }
   }
+  
+  const handleImportProperties = (importedProperties: Property[]) => {
+    setProperties(prev => [...importedProperties, ...prev])
+  }
 
   return (
     <div className="app">
@@ -61,6 +66,11 @@ function App() {
           <UnifiedFileUploader 
             onPropertiesExtracted={handlePropertiesExtracted}
             onPropertyExtracted={handlePropertyExtracted}
+          />
+          
+          <PropertyListActions
+            properties={properties}
+            onImportProperties={handleImportProperties}
           />
           
           <PropertyList 
