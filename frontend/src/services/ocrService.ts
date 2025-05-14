@@ -92,21 +92,21 @@ export const extractTextFromImage = async (file: File): Promise<string> => {
 export const extractAddressesFromImagePDF = async (file: File): Promise<string[]> => {
   // First extract text using OCR
   const text = await extractTextFromImage(file);
-  
+
   // Regular expressions for extracting addresses
   // American format addresses
   const US_ADDRESS_REGEX = /(\d+\s+[\w\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Place|Pl|Terrace|Ter|Way),\s+[\w\s]+,\s+[A-Z]{2}\s+\d{5})/gi;
-  
+
   // Japanese address format - matches patterns like "東京都豊島区駒込1-16-8"
   const JP_ADDRESS_REGEX = /(?:東京都|大阪府|京都府|北海道|[^\s]{2,3}県)[^\s]{2,3}(?:市|区|町|村)[^\s]{2,4}(?:\d+|\d+-\d+|\d+-\d+-\d+)/g;
-  
+
   // Extract addresses using both regex patterns
   const usAddresses = text.match(US_ADDRESS_REGEX) || [];
   const jpAddresses = text.match(JP_ADDRESS_REGEX) || [];
-  
+
   // Combine both types of addresses
   const allAddresses = [...usAddresses, ...jpAddresses];
   const uniqueAddresses = [...new Set(allAddresses)];
-  
+
   return uniqueAddresses;
-}; 
+};

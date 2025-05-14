@@ -25,30 +25,30 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-    
+
     const file = files[0];
     if (!file.type.startsWith('image/')) {
       setError('Please upload an image file (JPG, PNG)');
       return;
     }
-    
+
     // Create preview
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
     setPropertyImage(file.name);
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Extract property data from image
       const propertyData = await extractPropertyData(file);
       setExtractedData(propertyData);
-      
+
       if (!propertyData.address) {
         setError('Could not detect address in the image. Please enter it manually.');
       }
-      
+
     } catch (err) {
       setError('Error processing image');
       console.error(err);
@@ -59,13 +59,13 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
 
   const getMapCoordinates = (address: string | null): [number, number] => {
     if (!address) return [35.6812, 139.7671]; // Default Tokyo coordinates
-    
+
     // Try to extract ward from address for better coordinates
     const wardMatch = address.match(/(台東区|江戸川区|豊島区|渋谷区|新宿区|千代田区|中央区|港区|文京区|墨田区|目黒区|大田区|世田谷区|中野区|杉並区|荒川区|北区|板橋区|練馬区|足立区|葛飾区|江東区)/);
-    
+
     if (wardMatch) {
       const ward = wardMatch[1];
-      
+
       // Approximate coordinates for major Tokyo wards
       const wardCoordinates: Record<string, [number, number]> = {
         '台東区': [35.7120, 139.8107],
@@ -91,20 +91,20 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
         '葛飾区': [35.7448, 139.8469],
         '江東区': [35.6693, 139.8129]
       };
-      
+
       return wardCoordinates[ward] || [35.6812, 139.7671];
     }
-    
+
     return [35.6812, 139.7671]; // Default Tokyo coordinates
   };
 
   const getPropertyBuildingName = (address: string | null): string | null => {
     if (!address) return null;
-    
+
     // Extract the building name or description from the file name or identified patterns
     if (propertyImage) {
       const fileName = propertyImage.toLowerCase();
-      
+
       // Look for common building indicators in the filename
       if (fileName.includes('luxease') || fileName.includes('axas')) {
         return 'AXAS Luxease';
@@ -116,13 +116,13 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
         return 'Mansion';
       }
     }
-    
+
     return null;
   };
 
   const handleConfirm = () => {
     if (!extractedData?.address) return;
-    
+
     // Parse price value from Japanese format (e.g., "3,780万円")
     let priceValue = 0;
     if (extractedData.price) {
@@ -130,7 +130,7 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
       const numericValue = extractedData.price.replace(/[^0-9]/g, '');
       priceValue = parseInt(numericValue) * 10000; // Convert 万円 to regular yen
     }
-    
+
     // Parse size value from text (e.g., "30.31m²")
     let sizeValue = 0;
     if (extractedData.size) {
@@ -147,37 +147,37 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
         bedroomCount = parseInt(match[1]);
       }
     }
-    
+
     // Get coordinates based on the address
     const [lat, lng] = getMapCoordinates(extractedData.address);
-    
+
     // Get property building name based on the file and address
     const buildingName = getPropertyBuildingName(extractedData.address);
-    
+
     // Final address to display
-    const displayAddress = buildingName 
-      ? `${buildingName} - ${extractedData.address}` 
+    const displayAddress = buildingName
+      ? `${buildingName} - ${extractedData.address}`
       : extractedData.address;
-    
+
     // Create a property object with the extracted data
     const property: Property = {
       id: `jp-${Date.now()}`,
       address: displayAddress,
       price: priceValue || 37800000, // Default if not extracted
       bedrooms: bedroomCount,
-      bathrooms: 1, 
+      bathrooms: 1,
       sqft: sizeValue || 307, // Default if not extracted
       lat,
       lng
     };
-    
+
     onPropertyExtracted(property);
-    
+
     // Reset the component state
     setExtractedData(null);
     setPreviewUrl(null);
     setPropertyImage(null);
-    
+
     // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -188,7 +188,7 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
     setExtractedData(null);
     setPreviewUrl(null);
     setPropertyImage(null);
-    
+
     // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -198,7 +198,7 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
   return (
     <div className="japanese-property-scanner">
       <h2>Japanese Property Scanner</h2>
-      
+
       {!extractedData ? (
         <div className="upload-container">
           <input
@@ -209,7 +209,7 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
             className="file-input"
             ref={fileInputRef}
           />
-          <button 
+          <button
             className="upload-btn"
             onClick={() => {
               if (fileInputRef.current) {
@@ -235,45 +235,45 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
           <div className="data-fields">
             <div className="field">
               <label>Address:</label>
-              <input 
-                type="text" 
-                value={extractedData.address || ''} 
+              <input
+                type="text"
+                value={extractedData.address || ''}
                 onChange={(e) => setExtractedData({ ...extractedData, address: e.target.value })}
                 placeholder="No address detected"
               />
             </div>
             <div className="field">
               <label>Price:</label>
-              <input 
-                type="text" 
-                value={extractedData.price || ''} 
+              <input
+                type="text"
+                value={extractedData.price || ''}
                 onChange={(e) => setExtractedData({ ...extractedData, price: e.target.value })}
                 placeholder="Price not detected"
               />
             </div>
             <div className="field">
               <label>Size:</label>
-              <input 
-                type="text" 
-                value={extractedData.size || ''} 
+              <input
+                type="text"
+                value={extractedData.size || ''}
                 onChange={(e) => setExtractedData({ ...extractedData, size: e.target.value })}
                 placeholder="Size not detected"
               />
             </div>
             <div className="field">
               <label>Layout:</label>
-              <input 
-                type="text" 
-                value={extractedData.layout || ''} 
+              <input
+                type="text"
+                value={extractedData.layout || ''}
                 onChange={(e) => setExtractedData({ ...extractedData, layout: e.target.value })}
                 placeholder="Layout not detected"
               />
             </div>
             <div className="field">
               <label>Station:</label>
-              <input 
-                type="text" 
-                value={extractedData.station || ''} 
+              <input
+                type="text"
+                value={extractedData.station || ''}
                 onChange={(e) => setExtractedData({ ...extractedData, station: e.target.value })}
                 placeholder="Station not detected"
               />
@@ -285,11 +285,11 @@ const JapanesePropertyScanner: React.FC<JapanesePropertyScannerProps> = ({ onPro
           </div>
         </div>
       )}
-      
+
       {error && <div className="error">{error}</div>}
       {isLoading && <div className="loading">Scanning property image...</div>}
     </div>
   );
 };
 
-export default JapanesePropertyScanner; 
+export default JapanesePropertyScanner;

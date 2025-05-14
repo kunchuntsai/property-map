@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
-// OCR imports 
+// OCR imports
 import Tesseract from 'tesseract.js';
 
 const app = express();
@@ -94,11 +94,11 @@ const extractBuildingName = (text: string): string | null => {
   // Look for common building name patterns
   const buildingNameRegex = /(AXAS駒込Luxease|ジェイパレス浅草今戸|セザール京成小岩)/;
   const match = text.match(buildingNameRegex);
-  
+
   if (match) {
     return match[1];
   }
-  
+
   // Alternatively check for partial matches
   if (text.includes('AXAS') && text.includes('駒込')) {
     return 'AXAS駒込Luxease';
@@ -107,31 +107,31 @@ const extractBuildingName = (text: string): string | null => {
   } else if (text.includes('セザール') && text.includes('小岩')) {
     return 'セザール京成小岩';
   }
-  
+
   return null;
 };
 
 // Extract property address from text
 const extractPropertyAddress = (text: string): string | null => {
   // Try multiple approaches to extract the address
-  
+
   // List of address patterns to try
   const addressPatterns = [
     // Pattern 1: "所在地：東京都..." format
     /所在地[\s\S]*?[：:]\s*([^\n]+)/,
-    
+
     // Pattern 2: "住所表示：東京都..." format in property overview section
     /物件概要[\s\S]*?住所表示[：:]\s*([^\n]+)/,
-    
+
     // Pattern 3: "住居表示：東京都..." format
     /住[居宅]表示[\s\S]*?[：:]\s*([^\n]+)/,
-    
+
     // Pattern 4: "所在地" without colon
     /所在地\s*[^：:]*東京都([^\n\r]+)/,
-    
+
     // Pattern 5: Tokyo ward + address format
     /(台東区|江戸川区|豊島区|渋谷区|新宿区|千代田区|中央区|港区|文京区|墨田区|目黒区|大田区|世田谷区|中野区|杉並区|荒川区|北区|板橋区|練馬区|足立区|葛飾区|江東区)([^\s,、。:：]+)/,
-    
+
     // Pattern 6: General Japanese address format
     /(?:東京都|大阪府|京都府|北海道|[^\s]{2,3}県)[^\s]{2,3}(?:市|区|町|村)[^\s]{2,4}(?:\d+|\d+-\d+|\d+-\d+-\d+|[０-９]+|[０-９]+-[０-９]+)/
   ];
@@ -139,27 +139,27 @@ const extractPropertyAddress = (text: string): string | null => {
   // Try each pattern in order
   for (const pattern of addressPatterns) {
     const match = text.match(pattern);
-    
+
     if (match) {
       // If it's pattern 4 (with the group in a different position)
       if (pattern.toString().includes('所在地\\s*[^：:]*東京都')) {
         return `東京都${match[1].trim()}`;
       }
-      
+
       // If it's pattern 5 (Tokyo ward format)
       if (pattern.toString().includes('(台東区|江戸川区|豊島区')) {
         return `東京都${match[1]}${match[2]}`;
       }
-      
+
       // For other patterns
       if (match[1]) {
         return match[1].trim();
       }
-      
+
       return match[0].trim();
     }
   }
-  
+
   // If we reach here, no address was found
   return null;
 };
@@ -295,12 +295,12 @@ app.post('/api/ocr/extract-property', upload.single('image'), async (req, res) =
 
     const filePath = req.file.path;
     const text = await extractTextFromImage(filePath);
-    
+
     // Clean up uploaded file
     fs.unlink(filePath, (err) => {
       if (err) console.error(`Error deleting file: ${err}`);
     });
-    
+
     // Extract all property data
     const propertyData = {
       address: extractPropertyAddress(text),
@@ -328,14 +328,14 @@ app.post('/api/ocr/extract-address', upload.single('image'), async (req, res) =>
 
     const filePath = req.file.path;
     const text = await extractTextFromImage(filePath);
-    
+
     // Clean up uploaded file
     fs.unlink(filePath, (err) => {
       if (err) console.error(`Error deleting file: ${err}`);
     });
-    
+
     const address = extractPropertyAddress(text);
-    
+
     res.json({ address });
   } catch (error) {
     console.error('Error extracting address:', error);
@@ -352,12 +352,12 @@ app.post('/api/ocr/extract-text', upload.single('image'), async (req, res) => {
 
     const filePath = req.file.path;
     const text = await extractTextFromImage(filePath);
-    
+
     // Clean up uploaded file
     fs.unlink(filePath, (err) => {
       if (err) console.error(`Error deleting file: ${err}`);
     });
-    
+
     res.json({ text });
   } catch (error) {
     console.error('Error extracting text:', error);
@@ -367,4 +367,4 @@ app.post('/api/ocr/extract-text', upload.single('image'), async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
-}); 
+});

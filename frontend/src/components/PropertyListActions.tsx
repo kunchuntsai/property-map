@@ -52,14 +52,14 @@ const PropertyListActions: React.FC<PropertyListActionsProps> = ({ properties, o
     setMyMapsUrl(null);
     setKmlBlob(null);
   };
-  
+
   // Create a Google My Maps KML and get URL
   const handleCreateMyMap = async () => {
     if (properties.length === 0) {
       alert('No properties to map');
       return;
     }
-    
+
     try {
       // Create KML content with correct KML tags
       let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -70,16 +70,16 @@ const PropertyListActions: React.FC<PropertyListActionsProps> = ({ properties, o
 
       // Add each property as a placemark
       properties.forEach(property => {
-        console.log(`Property ${property.propertyName || property.address}: 
+        console.log(`Property ${property.propertyName || property.address}:
           Map coordinates (lat=${property.lat}, lng=${property.lng})
           KML coordinates: ${property.lng},${property.lat},0`);
-        
+
         const name = property.propertyName || property.address;
         const description = [
           property.address,
           property.isJapanese ? (property.floor || '') : `${property.bedrooms} bed, ${property.bathrooms} bath`,
-          property.isJapanese ? 
-            (property.areaMeters ? `${property.areaMeters}㎡${property.areaTsubo ? ` (約${property.areaTsubo.toFixed(2)}坪)` : ''}` : '') : 
+          property.isJapanese ?
+            (property.areaMeters ? `${property.areaMeters}㎡${property.areaTsubo ? ` (約${property.areaTsubo.toFixed(2)}坪)` : ''}` : '') :
             (property.sqft ? `${property.sqft} sqft` : ''),
           property.price ? `Price: ${property.isJapanese ? (property.price / 10000) + '万円' : '$' + property.price.toLocaleString()}` : ''
         ].filter(Boolean).join('\n');
@@ -102,21 +102,21 @@ const PropertyListActions: React.FC<PropertyListActionsProps> = ({ properties, o
       // Create a Blob from the KML content
       const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
       setKmlBlob(blob);
-      
+
       // Get the Google My Maps URL
       const url = await createGoogleMyMap(properties, listName);
       setMyMapsUrl(url);
-      
+
     } catch (error) {
       console.error('Error creating Google My Maps:', error);
       alert('Failed to create Google My Maps data');
     }
   };
-  
+
   // Download the KML file
   const downloadKml = () => {
     if (!kmlBlob) return;
-    
+
     const url = URL.createObjectURL(kmlBlob);
     const link = document.createElement('a');
     link.href = url;
@@ -126,7 +126,7 @@ const PropertyListActions: React.FC<PropertyListActionsProps> = ({ properties, o
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-  
+
   // Open Google My Maps
   const openMyMaps = () => {
     if (!myMapsUrl) return;
@@ -136,54 +136,54 @@ const PropertyListActions: React.FC<PropertyListActionsProps> = ({ properties, o
   return (
     <div className="property-list-actions">
       <div className="action-buttons">
-        <button 
-          className="action-button export-button" 
+        <button
+          className="action-button export-button"
           onClick={handleExport}
           disabled={properties.length === 0}
         >
           Export Properties
         </button>
-        
+
         <label className="action-button import-button">
           Import Properties
-          <input 
-            type="file" 
-            accept=".json" 
-            onChange={handleImportChange} 
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleImportChange}
             style={{ display: 'none' }}
             disabled={importing}
           />
         </label>
-        
-        <button 
-          className="action-button share-button" 
+
+        <button
+          className="action-button share-button"
           onClick={handleShowMapOptions}
           disabled={properties.length === 0}
         >
           Create Google Maps List
         </button>
       </div>
-      
+
       {importing && <div className="importing-status">Importing properties...</div>}
       {importError && <div className="import-error">Error: {importError}</div>}
-      
+
       {showGoogleMapsOptions && (
         <div className="google-maps-url-container">
           <h4>Create Google Maps List</h4>
-          
+
           <div className="list-name-input">
             <label htmlFor="listName">List Name:</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               id="listName"
-              value={listName} 
+              value={listName}
               onChange={(e) => setListName(e.target.value)}
               placeholder="Enter a name for your property list"
             />
           </div>
-          
+
           <div className="map-creation-options">
-            <button 
+            <button
               className="create-map-button"
               onClick={handleCreateMyMap}
               disabled={properties.length === 0 || !listName.trim()}
@@ -191,14 +191,14 @@ const PropertyListActions: React.FC<PropertyListActionsProps> = ({ properties, o
               Create Google Maps List
             </button>
           </div>
-          
+
           {myMapsUrl && kmlBlob && (
             <div className="mymaps-instructions">
               <h5>Your Google Maps List is Ready!</h5>
               <p>Follow these simple steps to create your shareable Google Maps list:</p>
               <ol>
                 <li>
-                  <button 
+                  <button
                     className="download-kml-button"
                     onClick={downloadKml}
                   >
@@ -206,7 +206,7 @@ const PropertyListActions: React.FC<PropertyListActionsProps> = ({ properties, o
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     className="open-mymaps-button"
                     onClick={openMyMaps}
                   >
@@ -222,9 +222,9 @@ const PropertyListActions: React.FC<PropertyListActionsProps> = ({ properties, o
               </div>
             </div>
           )}
-          
-          <button 
-            className="close-button" 
+
+          <button
+            className="close-button"
             onClick={() => setShowGoogleMapsOptions(false)}
           >
             Close

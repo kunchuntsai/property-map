@@ -8,11 +8,11 @@ interface PropertyListProps {
   selectedProperty?: Property;
 }
 
-const PropertyList: React.FC<PropertyListProps> = ({ 
-  properties, 
+const PropertyList: React.FC<PropertyListProps> = ({
+  properties,
   onSelectProperty,
   onRemoveProperty,
-  selectedProperty 
+  selectedProperty
 }) => {
   // Log properties for debugging
   useEffect(() => {
@@ -21,13 +21,13 @@ const PropertyList: React.FC<PropertyListProps> = ({
 
   // Helper function to determine if a property is Japanese
   const isJapaneseProperty = (property: Property) => {
-    return (property.isJapanese || 
-           property.address.includes('東京') || 
+    return (property.isJapanese ||
+           property.address.includes('東京') ||
            property.address.includes('Tokyo') ||
            property.address.includes('Japan') ||
            (property.lat > 35 && property.lat < 36 && property.lng > 139 && property.lng < 140));
   };
-  
+
   // Helper function to format price based on property location
   const formatPrice = (property: Property) => {
     if (isJapaneseProperty(property)) {
@@ -45,20 +45,20 @@ const PropertyList: React.FC<PropertyListProps> = ({
       areaTsubo: property.areaTsubo,
       sqft: property.sqft
     });
-    
+
     // First check if we have area in square meters
     if (property.areaMeters) {
       const areaTsubo = property.areaTsubo || (property.areaMeters / 3.306);
       return `${property.areaMeters.toFixed(2)}㎡ (約${areaTsubo.toFixed(2)}坪)`;
     }
-    
+
     // If no areaMeters but have sqft, convert
     if (property.sqft && property.sqft > 0) {
       const meters = property.sqft / 10.764;
       const tsubo = meters / 3.306;
       return `${meters.toFixed(2)}㎡ (約${tsubo.toFixed(2)}坪)`;
     }
-    
+
     // If we can parse areaMeters from the floor field as a fallback
     // Sometimes area might be included in the floor description
     if (property.floor && property.floor.includes('㎡')) {
@@ -69,7 +69,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
         return `${areaMeters.toFixed(2)}㎡ (約${areaTsubo.toFixed(2)}坪)`;
       }
     }
-    
+
     return 'N/A';
   };
 
@@ -78,17 +78,17 @@ const PropertyList: React.FC<PropertyListProps> = ({
     e.stopPropagation();
     onRemoveProperty(propertyId);
   };
-  
+
   // Get property name for Japanese properties
   const getPropertyName = (property: Property) => {
     return property.propertyName || '-';
   };
-  
+
   // Get floor information for Japanese properties
   const getFloor = (property: Property) => {
     return property.floor || '-';
   };
-  
+
   // Fix and normalize property data if necessary
   const normalizePropertyData = (property: Property) => {
     // Ensure all required properties exist
@@ -99,7 +99,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
     }
     return property;
   };
-  
+
   return (
     <div className="property-list">
       <h2>Properties ({properties.length})</h2>
@@ -107,24 +107,24 @@ const PropertyList: React.FC<PropertyListProps> = ({
         {properties.map(property => {
           const isJapanese = isJapaneseProperty(property);
           const normalizedProperty = normalizePropertyData(property);
-          
+
           return (
-            <div 
-              key={property.id} 
+            <div
+              key={property.id}
               className={`property-card ${selectedProperty?.id === property.id ? 'selected' : ''}`}
               onClick={() => onSelectProperty(property)}
             >
               <div className="property-card-header">
                 <h3>{formatPrice(normalizedProperty)}</h3>
-                <button 
-                  className="remove-property-btn" 
+                <button
+                  className="remove-property-btn"
                   onClick={(e) => handleRemoveClick(e, property.id)}
                   aria-label="Remove property"
                 >
                   ×
                 </button>
               </div>
-              
+
               {isJapanese ? (
                 // Japanese property format
                 <div className="jp-property-details">
@@ -153,4 +153,4 @@ const PropertyList: React.FC<PropertyListProps> = ({
   );
 };
 
-export default PropertyList; 
+export default PropertyList;

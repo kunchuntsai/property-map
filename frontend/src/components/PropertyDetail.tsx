@@ -11,22 +11,22 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property }) => {
   }
 
   // Determine if this is a Japanese property
-  const isJapaneseProperty = 
-    property.address.includes('東京') || 
+  const isJapaneseProperty =
+    property.address.includes('東京') ||
     property.address.includes('Tokyo') ||
     property.address.includes('Japan') ||
     (property.lat > 35 && property.lat < 36 && property.lng > 139 && property.lng < 140);
-  
+
   // Format price according to property location
-  const formattedPrice = isJapaneseProperty 
-    ? `¥${property.price.toLocaleString()}` 
+  const formattedPrice = isJapaneseProperty
+    ? `¥${property.price.toLocaleString()}`
     : `$${property.price.toLocaleString()}`;
-    
+
   // Format area according to property location
-  const formattedArea = isJapaneseProperty 
-    ? `${(property.sqft / 10.7639).toFixed(2)}㎡` 
+  const formattedArea = isJapaneseProperty
+    ? `${(property.sqft / 10.7639).toFixed(2)}㎡`
     : `${property.sqft.toLocaleString()} sqft`;
-    
+
   // Format area label
   const areaLabel = isJapaneseProperty ? "Area (㎡)" : "Square Feet";
 
@@ -59,4 +59,4 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property }) => {
   );
 };
 
-export default PropertyDetail; 
+export default PropertyDetail;

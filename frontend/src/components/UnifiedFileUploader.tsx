@@ -18,7 +18,7 @@ interface JapanesePropertyListItem {
   price?: string;
 }
 
-const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({ 
+const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
   onPropertyExtracted,
   onPropertiesExtracted
 }) => {
@@ -47,19 +47,19 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-    
+
     const file = files[0];
     const fileType = file.type;
     const fileName = file.name.toLowerCase();
-    
+
     console.log('File upload detected:', {
       name: file.name,
       type: fileType,
       size: file.size
     });
-    
+
     // Check if file is supported
-    if (fileType !== 'application/pdf' && fileType !== 'text/plain' && 
+    if (fileType !== 'application/pdf' && fileType !== 'text/plain' &&
         !fileType.startsWith('image/')) {
       setError('Please upload a PDF, text file, or image');
       return;
@@ -70,17 +70,17 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
       type: fileType,
       preview: fileType.startsWith('image/') ? URL.createObjectURL(file) : undefined
     });
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Process file based on type
       if (fileType.startsWith('image/')) {
         // Process as Japanese property image
         const propertyData = await extractPropertyData(file);
         setExtractedData(propertyData);
-        
+
         if (propertyData.address) {
           setExtractedAddresses([propertyData.address]);
           setShowValidator(true);
@@ -96,10 +96,10 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
         }
       } else if (fileType === 'text/plain') {
         console.log('Processing text file for Japanese properties');
-        
+
         // Try to extract Japanese property details first
         const japaneseProperties = await extractJapanesePropertyList(file);
-        
+
         if (japaneseProperties.length > 0) {
           // Found property details in Japanese format
           console.log('Japanese properties extracted:', japaneseProperties);
@@ -118,7 +118,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
       } else {
         // For PDF files, extract addresses
         const addresses = await extractAddressesFromFile(file);
-        
+
         if (addresses.length === 0) {
           setError('No property addresses found in the file');
         } else {
@@ -138,15 +138,15 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
   const extractJapanesePropertyList = async (file: File): Promise<JapanesePropertyListItem[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = async (e) => {
         try {
           const text = e.target?.result as string;
           const properties: JapanesePropertyListItem[] = [];
-          
+
           // Use the new parser from geocodingService
           const parsedProperties = parseJapanesePropertyListing(text);
-          
+
           // Convert to JapanesePropertyListItem format
           parsedProperties.forEach(prop => {
             if (prop.address) {
@@ -159,7 +159,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
               });
             }
           });
-          
+
           resolve(properties);
         } catch (error) {
           console.error('Error parsing property list:', error);
@@ -168,18 +168,18 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             // First method: Split by "物件名:" pattern
             // This is the expected format in list.txt
             const propertyBlocks = text.split(/物件名[:：]/);
-            
+
             // Process each block (skip first which is empty or header)
             for (let i = 1; i < propertyBlocks.length; i++) {
               const block = propertyBlocks[i].trim();
-              
+
               // Extract property details
               const nameMatch = block.match(/^(.+?)[\n]/);
               const addressMatch = block.match(/住所[:：]\s*([^\n]+)/);
               const floorMatch = block.match(/階数[:：]\s*([^\n]+)/);
               const sizeMatch = block.match(/面積[:：]\s*([^\n]+)/);
               const priceMatch = block.match(/価格[:：]\s*([^\n]+)/);
-              
+
               if (addressMatch) {
                 properties.push({
                   name: nameMatch ? nameMatch[1].trim() : `Property ${i}`,
@@ -190,22 +190,22 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
                 });
               }
             }
-            
+
             // If no properties found yet, try alternative patterns
             if (properties.length === 0) {
               // Try looking for the pattern of alternating name/value pairs
               const lines = text.split('\n').filter(line => line.trim().length > 0);
-              
+
               let currentProperty: Partial<JapanesePropertyListItem> = {};
               let hasAddress = false;
-              
+
               for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
-                
+
                 // Look for key-value pairs
                 if (line.includes(':') || line.includes('：')) {
                   const [key, value] = line.split(/[:：]/).map(part => part.trim());
-                  
+
                   if (key && value) {
                     if (key === '物件名' || key === 'マンション名') {
                       // If we were building a property and it has an address, save it
@@ -218,7 +218,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
                           price: currentProperty.price
                         });
                       }
-                      
+
                       // Start a new property
                       currentProperty = { name: value };
                       hasAddress = false;
@@ -235,7 +235,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
                   }
                 }
               }
-              
+
               // Add the last property if it has an address
               if (hasAddress && currentProperty.address) {
                 properties.push({
@@ -247,7 +247,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
                 });
               }
             }
-            
+
             console.log("Extracted properties:", properties);
             resolve(properties);
           } catch (err) {
@@ -255,7 +255,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
           }
         }
       };
-      
+
       reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsText(file);
     });
@@ -267,25 +267,25 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
       console.log("No address provided, using default Tokyo coordinates");
       return [35.6812, 139.7671]; // Default Tokyo coordinates
     }
-    
+
     console.log(`Getting coordinates for address: ${address}${propertyName ? ` (${propertyName})` : ''}`);
-    
+
     try {
       // For Japanese addresses, ensure Japan is included and properly combine with property name
       let formattedAddress = address;
       const isJapanese = address.includes('東京') || address.includes('Tokyo') || address.includes('Japan') || /[一-龯]/.test(address);
-      
+
       // For Japanese addresses, include property name in search if available
       if (isJapanese && propertyName) {
         formattedAddress = `${formattedAddress} ${propertyName}`;
         console.log(`Using Japanese address format (address + property name): ${formattedAddress}`);
       }
-      
+
       // If Japanese address doesn't include Japan, add it
       if (isJapanese && !formattedAddress.includes('Japan') && !formattedAddress.includes('日本')) {
         formattedAddress += ', Japan';
       }
-      
+
       const coordinates = await geocodeAddress(formattedAddress);
       if (coordinates) {
         console.log(`Successfully geocoded ${address} to: [${coordinates.lat}, ${coordinates.lng}]`);
@@ -294,11 +294,11 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
     } catch (error) {
       console.error(`Error geocoding address ${address}:`, error);
     }
-    
+
     // Only fallback if API geocoding fails - with small random offset to prevent stacking
-    const randomLat = (Math.random() - 0.5) * 0.01; 
+    const randomLat = (Math.random() - 0.5) * 0.01;
     const randomLng = (Math.random() - 0.5) * 0.01;
-    
+
     // Default Tokyo coordinates with randomization
     const defaultCoords: [number, number] = [35.6812 + randomLat, 139.7671 + randomLng];
     console.log(`API geocoding failed. Using default Tokyo coordinates with random offset: [${defaultCoords[0]}, ${defaultCoords[1]}]`);
@@ -308,22 +308,22 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
   const handlePropertyListConfirm = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Convert to properties format
       if (fileInfo?.type === 'text/plain' && fileInputRef.current?.files?.[0]) {
         const file = fileInputRef.current.files[0];
         const reader = new FileReader();
-        
+
         reader.onload = async (e) => {
           try {
             const text = e.target?.result as string;
             console.log('Processing text file content for Japanese properties');
-            
+
             // Use the new service to process and geocode the properties
             const geocodedProperties = await processJapanesePropertyListings(text);
             console.log('Geocoded properties:', geocodedProperties);
-            
+
             if (geocodedProperties.length > 0) {
               // Log each property's area information for debugging
               geocodedProperties.forEach(prop => {
@@ -333,10 +333,10 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
                   sqft: prop.sqft
                 });
               });
-              
+
               // Notify parent component of the properties
               onPropertiesExtracted(geocodedProperties);
-              
+
               // Reset state
               resetState();
             } else {
@@ -349,29 +349,29 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             setIsLoading(false);
           }
         };
-        
+
         reader.onerror = () => {
           setError('Failed to read file');
           setIsLoading(false);
         };
-        
+
         reader.readAsText(file);
       } else if (extractedProperties.length > 0) {
         // Fallback to the original method if we have extracted properties but not from a text file
         console.log('Using fallback method for extracted properties');
-        
+
         // Process each property and get coordinates (now async)
         const properties: Property[] = [];
-        
+
         for (const prop of extractedProperties) {
           // Get coordinates for the address - include property name for Japanese addresses
           const [lat, lng] = await getMapCoordinates(prop.address, prop.name);
-          
+
           // Parse area information if available
           let areaMeters: number | undefined;
           let areaTsubo: number | undefined;
           let sqft = 0;
-          
+
           if (prop.size) {
             // Try to extract square meters from size string
             const match = prop.size.match(/(\d+\.?\d*)㎡/);
@@ -381,7 +381,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
               areaTsubo = parseFloat((areaMeters / 3.306).toFixed(2));
               // Convert to sqft (1 sq meter = 10.764 sq ft)
               sqft = Math.round(areaMeters * 10.764);
-              
+
               console.log(`Extracted area from "${prop.size}":`, {
                 areaMeters,
                 areaTsubo,
@@ -389,7 +389,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
               });
             }
           }
-          
+
           properties.push({
             id: `jp-${Date.now()}-${properties.length}`,
             address: prop.address,
@@ -406,7 +406,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             isJapanese: true
           });
         }
-        
+
         console.log('Final processed properties:', properties);
         onPropertiesExtracted(properties);
         resetState();
@@ -422,11 +422,11 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
   const handleConfirmAddresses = async (validAddresses: string[]) => {
     try {
       setIsLoading(true);
-      
+
       // Handle single Japanese property with detailed data
       if (fileInfo?.type.startsWith('image/') && extractedData && validAddresses.length === 1) {
         const address = validAddresses[0];
-        
+
         // Parse price value from Japanese format (e.g., "3,780万円")
         let priceValue = 0;
         if (extractedData.price) {
@@ -434,7 +434,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
           const numericValue = extractedData.price.replace(/[^0-9]/g, '');
           priceValue = parseInt(numericValue) * 10000; // Convert 万円 to regular yen
         }
-        
+
         // Parse size value from text (e.g., "30.31m²")
         let sizeValue = 0;
         if (extractedData.size) {
@@ -451,34 +451,34 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             bedroomCount = parseInt(match[1]);
           }
         }
-        
+
         // Get coordinates based on the address - include building/property name for Japanese addresses
         const [lat, lng] = await getMapCoordinates(
-          address, 
+          address,
           extractedData.buildingType || undefined
         );
-        
+
         // Create a property object with the extracted data
         const property: Property = {
           id: `property-${Date.now()}`,
           address,
           price: priceValue || 37800000, // Default if not extracted
           bedrooms: bedroomCount,
-          bathrooms: 1, 
+          bathrooms: 1,
           sqft: sizeValue || 307, // Default if not extracted
           lat,
           lng
         };
-        
+
         onPropertyExtracted(property);
       } else {
         // Multiple addresses or PDF/text file - convert to properties
         const properties: Property[] = [];
-        
+
         for (const address of validAddresses) {
           // For Japanese addresses, generate coordinates around Tokyo
           const isJapaneseAddress = /[一-龯]/.test(address) || address.includes('東京');
-          
+
           let lat, lng;
           if (isJapaneseAddress) {
             // For Japanese addresses, use the geocoding service
@@ -488,7 +488,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             lat = 37.7749 + (Math.random() - 0.5) * 0.1;
             lng = -122.4194 + (Math.random() - 0.5) * 0.1;
           }
-          
+
           properties.push({
             id: `file-${Date.now()}-${properties.length}`,
             address,
@@ -500,10 +500,10 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             lng
           });
         }
-        
+
         onPropertiesExtracted(properties);
       }
-      
+
       // Reset state
       handleCancel();
     } catch (err) {
@@ -521,7 +521,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
     setShowValidator(false);
     setShowPropertyList(false);
     setFileInfo(null);
-    
+
     // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -537,7 +537,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
     setShowPropertyList(false);
     setFileInfo(null);
     setError(null);
-    
+
     // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -550,7 +550,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
       <div className="unified-file-uploader">
         <h2>Confirm Property List</h2>
         <p>Found {extractedProperties.length} properties in the file</p>
-        
+
         <div className="property-list-preview">
           {extractedProperties.map((property, index) => (
             <div key={index} className="property-list-item">
@@ -562,16 +562,16 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             </div>
           ))}
         </div>
-        
+
         <div className="validation-actions">
-          <button 
-            className="btn-cancel" 
+          <button
+            className="btn-cancel"
             onClick={handleCancel}
           >
             Cancel
           </button>
-          <button 
-            className="btn-confirm" 
+          <button
+            className="btn-confirm"
             onClick={handlePropertyListConfirm}
             disabled={extractedProperties.length === 0}
           >
@@ -592,7 +592,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
             {fileInfo.name && <p className="image-name">{fileInfo.name}</p>}
           </div>
         )}
-        <AddressValidator 
+        <AddressValidator
           addresses={extractedAddresses}
           onConfirm={handleConfirmAddresses}
           onCancel={handleCancel}
@@ -614,7 +614,7 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
           className="file-input"
           ref={fileInputRef}
         />
-        <button 
+        <button
           className="upload-btn"
           onClick={() => {
             if (fileInputRef.current) {
@@ -633,4 +633,4 @@ const UnifiedFileUploader: React.FC<UnifiedFileUploaderProps> = ({
   );
 };
 
-export default UnifiedFileUploader; 
+export default UnifiedFileUploader;

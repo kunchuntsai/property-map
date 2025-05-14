@@ -23,7 +23,7 @@ export const mockProperties: Property[] = [
     id: '2',
     address: '東京都豊島区駒込1-16-8',
     price: 37800000, // 3,780万円
-    bedrooms: 1, 
+    bedrooms: 1,
     bathrooms: 1,
     sqft: 326, // Converted from 30.31㎡
     lat: 0, // Will be filled by geocoding
@@ -34,4 +34,4 @@ export const mockProperties: Property[] = [
     areaTsubo: 9.16,
     isJapanese: true
   }
-]; 
+];

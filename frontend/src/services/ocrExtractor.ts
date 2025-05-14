@@ -32,11 +32,11 @@ const extractBuildingName = (text: string): string | null => {
   // Look for common building name patterns
   const buildingNameRegex = /(AXAS駒込Luxease|ジェイパレス浅草今戸|セザール京成小岩)/;
   const match = text.match(buildingNameRegex);
-  
+
   if (match) {
     return match[1];
   }
-  
+
   // Alternatively check for partial matches
   if (text.includes('AXAS') && text.includes('駒込')) {
     return 'AXAS駒込Luxease';
@@ -45,7 +45,7 @@ const extractBuildingName = (text: string): string | null => {
   } else if (text.includes('セザール') && text.includes('小岩')) {
     return 'セザール京成小岩';
   }
-  
+
   return null;
 };
 
@@ -53,18 +53,18 @@ const extractBuildingName = (text: string): string | null => {
 const identifyLocationFromText = (text: string): string | null => {
   // First try to extract the building name
   const buildingName = extractBuildingName(text);
-  
+
   // Check for specific properties we've seen in examples
   if (buildingName === 'ジェイパレス浅草今戸' || text.includes('台東区今戸')) {
     return '東京都台東区今戸1-15-6号';
-  } 
+  }
   else if (buildingName === 'セザール京成小岩' || text.includes('江戸川区北小岩')) {
     return '東京都江戸川区北小岩6丁目14-7';
   }
   else if (buildingName === 'AXAS駒込Luxease' || text.includes('豊島区駒込')) {
     return '東京都豊島区駒込1-16-8';
   }
-  
+
   // Look for direct address patterns
   if (text.includes('所在地') && text.includes('台東区今戸')) {
     return '東京都台東区今戸1-15-6号';
@@ -75,7 +75,7 @@ const identifyLocationFromText = (text: string): string | null => {
   else if (text.includes('住居表示') && text.includes('豊島区駒込')) {
     return '東京都豊島区駒込1-16-8';
   }
-  
+
   return null;
 };
 
@@ -93,7 +93,7 @@ const getPropertyDataFromImage = (file: File): Promise<{
     // Use the file name to identify which property is in the image
     const fileName = file.name.toLowerCase();
     const fileSize = file.size;
-    
+
     // Image 1: ジェイパレス浅草今戸
     if (fileName.includes('imado') || fileName.includes('今戸')) {
       resolve({
@@ -148,28 +148,28 @@ export const extractPropertyData = async (file: File): Promise<{
 }> => {
   // Extract text using OCR
   const text = await extractTextFromImage(file);
-  
+
   // Extract address
   const address = extractPropertyAddress(text);
-  
+
   // Extract price
   const price = extractPrice(text);
-  
+
   // Extract size
   const size = extractSize(text);
-  
+
   // Extract layout
   const layout = extractLayout(text);
-  
+
   // Extract station
   const station = extractStation(text);
-  
+
   // Extract building type
   const buildingType = extractBuildingType(text);
-  
+
   // Extract construction year
   const year = extractYear(text);
-  
+
   return {
     address,
     price,
@@ -307,22 +307,22 @@ export const extractAddressesFromImagePDF = async (file: File): Promise<string[]
   try {
     // First extract text using OCR
     const text = await extractTextFromImage(file);
-    
+
     // Regular expressions for extracting addresses
     // American format addresses
     const US_ADDRESS_REGEX = /(\d+\s+[\w\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Place|Pl|Terrace|Ter|Way),\s+[\w\s]+,\s+[A-Z]{2}\s+\d{5})/gi;
-    
+
     // Japanese address format - matches patterns like "東京都豊島区駒込1-16-8"
     const JP_ADDRESS_REGEX = /(?:東京都|大阪府|京都府|北海道|[^\s]{2,3}県)[^\s]{2,3}(?:市|区|町|村)[^\s]{2,4}(?:\d+|\d+-\d+|\d+-\d+-\d+)/g;
-    
+
     // Extract addresses using both regex patterns
     const usAddresses = text.match(US_ADDRESS_REGEX) || [];
     const jpAddresses = text.match(JP_ADDRESS_REGEX) || [];
-    
+
     // Combine both types of addresses
     const allAddresses = [...usAddresses, ...jpAddresses];
     const uniqueAddresses = [...new Set(allAddresses)];
-    
+
     return uniqueAddresses;
   } catch (error) {
     console.error('Error extracting addresses from image:', error);
@@ -333,24 +333,24 @@ export const extractAddressesFromImagePDF = async (file: File): Promise<string[]
 // Extract property address from text
 export const extractPropertyAddress = (text: string): string | null => {
   // Try multiple approaches to extract the address
-  
+
   // List of address patterns to try
   const addressPatterns = [
     // Pattern 1: "所在地：東京都..." format
     /所在地[\s\S]*?[：:]\s*([^\n]+)/,
-    
+
     // Pattern 2: "住所表示：東京都..." format in property overview section
     /物件概要[\s\S]*?住所表示[：:]\s*([^\n]+)/,
-    
+
     // Pattern 3: "住居表示：東京都..." format
     /住[居宅]表示[\s\S]*?[：:]\s*([^\n]+)/,
-    
+
     // Pattern 4: "所在地" without colon
     /所在地\s*[^：:]*東京都([^\n\r]+)/,
-    
+
     // Pattern 5: Tokyo ward + address format
     /(台東区|江戸川区|豊島区|渋谷区|新宿区|千代田区|中央区|港区|文京区|墨田区|目黒区|大田区|世田谷区|中野区|杉並区|荒川区|北区|板橋区|練馬区|足立区|葛飾区|江東区)([^\s,、。:：]+)/,
-    
+
     // Pattern 6: General Japanese address format
     /(?:東京都|大阪府|京都府|北海道|[^\s]{2,3}県)[^\s]{2,3}(?:市|区|町|村)[^\s]{2,4}(?:\d+|\d+-\d+|\d+-\d+-\d+|[０-９]+|[０-９]+-[０-９]+)/
   ];
@@ -358,27 +358,27 @@ export const extractPropertyAddress = (text: string): string | null => {
   // Try each pattern in order
   for (const pattern of addressPatterns) {
     const match = text.match(pattern);
-    
+
     if (match) {
       // If it's pattern 4 (with the group in a different position)
       if (pattern.toString().includes('所在地\\s*[^：:]*東京都')) {
         return `東京都${match[1].trim()}`;
       }
-      
+
       // If it's pattern 5 (Tokyo ward format)
       if (pattern.toString().includes('(台東区|江戸川区|豊島区')) {
         return `東京都${match[1]}${match[2]}`;
       }
-      
+
       // For other patterns
       if (match[1]) {
         return match[1].trim();
       }
-      
+
       return match[0].trim();
     }
   }
-  
+
   // If we reach here, no address was found
   return null;
 };
@@ -392,4 +392,4 @@ export const extractPropertyAddressFromImage = async (file: File): Promise<strin
     console.error('Error extracting property address:', error);
     return null;
   }
-}; 
+};

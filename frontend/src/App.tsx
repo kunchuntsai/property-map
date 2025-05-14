@@ -51,7 +51,7 @@ function App() {
       setSelectedProperty(null)
     }
   }
-  
+
   const handleImportProperties = (importedProperties: Property[]) => {
     setProperties(prev => [...importedProperties, ...prev])
   }
@@ -63,18 +63,18 @@ function App() {
       </header>
       <main className="app-main">
         <div className="sidebar">
-          <UnifiedFileUploader 
+          <UnifiedFileUploader
             onPropertiesExtracted={handlePropertiesExtracted}
             onPropertyExtracted={handlePropertyExtracted}
           />
-          
+
           <PropertyListActions
             properties={properties}
             onImportProperties={handleImportProperties}
           />
-          
-          <PropertyList 
-            properties={properties} 
+
+          <PropertyList
+            properties={properties}
             onSelectProperty={handleSelectProperty}
             onRemoveProperty={handleRemoveProperty}
             selectedProperty={selectedProperty || undefined}
@@ -87,8 +87,8 @@ function App() {
           ) : error ? (
             <div className="error">{error}</div>
           ) : (
-            <PropertyGoogleMap 
-              properties={properties} 
+            <PropertyGoogleMap
+              properties={properties}
               onSelectProperty={handleSelectProperty}
               apiKey={config.googleMapsApiKey}
               selectedProperty={selectedProperty || undefined}

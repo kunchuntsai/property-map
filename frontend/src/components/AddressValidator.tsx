@@ -7,10 +7,10 @@ interface AddressValidatorProps {
   onCancel: () => void;
 }
 
-const AddressValidator: React.FC<AddressValidatorProps> = ({ 
-  addresses, 
-  onConfirm, 
-  onCancel 
+const AddressValidator: React.FC<AddressValidatorProps> = ({
+  addresses,
+  onConfirm,
+  onCancel
 }) => {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(addresses);
   const [newAddress, setNewAddress] = useState<string>('');
@@ -40,7 +40,7 @@ const AddressValidator: React.FC<AddressValidatorProps> = ({
     <div className="address-validator">
       <h2>Validate Extracted Addresses</h2>
       <p>Select valid addresses from the list below or add new ones:</p>
-      
+
       <div className="address-list">
         {addresses.length === 0 ? (
           <p className="no-addresses">No addresses found in the file</p>
@@ -48,8 +48,8 @@ const AddressValidator: React.FC<AddressValidatorProps> = ({
           addresses.map((address, index) => (
             <div key={index} className="address-item">
               <label>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={selectedAddresses.includes(address)}
                   onChange={() => toggleAddress(address)}
                 />
@@ -73,7 +73,7 @@ const AddressValidator: React.FC<AddressValidatorProps> = ({
           <button onClick={addNewAddress}>Add</button>
         </div>
       </div>
-      
+
       <div className="selected-addresses">
         <h3>Selected Addresses ({selectedAddresses.length})</h3>
         <ul>
@@ -82,16 +82,16 @@ const AddressValidator: React.FC<AddressValidatorProps> = ({
           ))}
         </ul>
       </div>
-      
+
       <div className="validation-actions">
-        <button 
-          className="btn-cancel" 
+        <button
+          className="btn-cancel"
           onClick={onCancel}
         >
           Cancel
         </button>
-        <button 
-          className="btn-confirm" 
+        <button
+          className="btn-confirm"
           onClick={() => onConfirm(selectedAddresses)}
           disabled={selectedAddresses.length === 0}
         >
@@ -102,4 +102,4 @@ const AddressValidator: React.FC<AddressValidatorProps> = ({
   );
 };
 
-export default AddressValidator; 
+export default AddressValidator;

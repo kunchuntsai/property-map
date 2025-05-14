@@ -18,26 +18,26 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ onPropertiesExtracted }) => {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-    
+
     const file = files[0];
     const fileType = file.type;
-    
+
     // Check if file is supported
-    if (fileType !== 'application/pdf' && fileType !== 'text/plain' && 
+    if (fileType !== 'application/pdf' && fileType !== 'text/plain' &&
         !fileType.startsWith('image/')) {
       setError('Please upload a PDF, text file, or image');
       return;
     }
-    
+
     setIsImageFile(fileType.startsWith('image/'));
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Extract addresses from file
       let addresses: string[] = [];
-      
+
       if (isImageFile) {
         // Use OCR for image files
         const jpAddress = await extractPropertyAddressFromImage(file);
@@ -52,11 +52,11 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ onPropertiesExtracted }) => {
         // For text and PDF files, use the existing extractor
         addresses = await extractAddressesFromFile(file);
       }
-      
+
       if (addresses.length === 0) {
         setError('No property addresses found in the file');
       }
-      
+
       setExtractedAddresses(addresses);
       setShowValidator(true);
     } catch (err) {
@@ -75,15 +75,15 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ onPropertiesExtracted }) => {
         // For Japanese addresses, generate coordinates around Tokyo
         // Tokyo coordinates: 35.6762° N, 139.6503° E
         const isJapaneseAddress = /[一-龯]/.test(address);
-        
-        const lat = isJapaneseAddress 
+
+        const lat = isJapaneseAddress
           ? 35.6762 + (Math.random() - 0.5) * 0.1
           : 37.7749 + (Math.random() - 0.5) * 0.1;
-          
+
         const lng = isJapaneseAddress
           ? 139.6503 + (Math.random() - 0.5) * 0.1
           : -122.4194 + (Math.random() - 0.5) * 0.1;
-        
+
         return {
           id: `file-${index + 1}`,
           address,
@@ -95,9 +95,9 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ onPropertiesExtracted }) => {
           lng
         };
       });
-      
+
       onPropertiesExtracted(properties);
-      
+
       // Clear state
       setShowValidator(false);
       setExtractedAddresses([]);
@@ -116,7 +116,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ onPropertiesExtracted }) => {
 
   if (showValidator) {
     return (
-      <AddressValidator 
+      <AddressValidator
         addresses={extractedAddresses}
         onConfirm={handleConfirmAddresses}
         onCancel={handleCancelValidation}
@@ -134,7 +134,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ onPropertiesExtracted }) => {
           onChange={handleFileUpload}
           disabled={isLoading}
         />
-        <button 
+        <button
           className="upload-btn"
           onClick={() => {
             const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -151,4 +151,4 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ onPropertiesExtracted }) => {
   );
 };
 
-export default PdfUploader; 
+export default PdfUploader;

@@ -44,7 +44,7 @@ An interactive web application to visualize property listings on a map. Upload p
    ```bash
    # Start the backend server
    npm run start:backend
-   
+
    # In a separate terminal, start the frontend
    npm run start:frontend
    ```
@@ -146,24 +146,19 @@ Share your property map with others using Google Maps Lists:
 
 Note: This is the closest way to create a true Google Maps list that can be shared with a short URL.
 
-## Removing Properties
-
-- Each property in the list has a remove button (×)
-- Click this button to remove a property from the list and map
-
 ## Google Maps Integration
 
 This application uses Google Maps for displaying property locations:
 
 1. Obtain a Google Maps API key from the [Google Cloud Platform Console](https://console.cloud.google.com/)
    - Create a new project or use an existing one
-   - Enable the "Maps JavaScript API" 
+   - Enable the "Maps JavaScript API"
    - Create API credentials (API key)
    - Set up appropriate restrictions for your API key (HTTP referrers, IP addresses, etc.)
 
 2. Configure your API key using the provided setup script:
    ```bash
-   ./setup-env.sh
+   ./scripts/setup-env.sh
    ```
    This will create `.env` files in both the frontend and backend directories.
 
@@ -174,11 +169,44 @@ This application uses Google Maps for displaying property locations:
 
 Note: Keep your API key confidential. The `.env` files are already included in `.gitignore` to ensure your API key is not committed to the repository.
 
+## Utility Scripts
+
+The project includes several utility scripts to help with development and code maintenance:
+
+### Environment Setup
+
+The `setup-env.sh` script creates necessary environment files for both frontend and backend:
+
+```bash
+./scripts/setup-env.sh
+```
+
+This interactive script will:
+- Create a frontend `.env` file with your Google Maps API key
+- Create a backend `.env` file with default configuration
+- Handle existing files by asking if you want to overwrite them
+
+### Code Maintenance
+
+The `rm_trailing_spaces.sh` script removes trailing whitespace from code files:
+
+```bash
+./scripts/rm_trailing_spaces.sh
+```
+
+This script:
+- Scans all relevant code files in the project
+- Removes trailing whitespace automatically
+- Reports which files were modified
+- Excludes directories like node_modules, build, dist, etc.
+- Works with JavaScript, TypeScript, CSS, HTML, and other common web development files
+
 ## Todo List
 
 The following items are planned for future development:
 
 - OCR functionality needs verification
+- Display the property image on its map marker
 
 ## License
 
