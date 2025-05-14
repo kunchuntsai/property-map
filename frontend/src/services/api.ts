@@ -19,6 +19,9 @@ export interface Property {
   areaMeters?: number;    // 面積 (㎡)
   areaTsubo?: number;     // 面積 (坪)
   isJapanese?: boolean;   // Flag to indicate if it's a Japanese property
+  // Display fields for the formatted data
+  sizeDisplay?: string;   // Display format of size (e.g., "30.31㎡ (約9.16坪)")
+  priceDisplay?: string;  // Display format of price (e.g., "3,780万円")
   // Optional geocoded coordinates
   geocodedLat?: number;
   geocodedLng?: number;

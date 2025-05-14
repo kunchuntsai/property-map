@@ -30,6 +30,11 @@ const PropertyList: React.FC<PropertyListProps> = ({
 
   // Helper function to format price based on property location
   const formatPrice = (property: Property) => {
+    // If we have a display field for price, use it
+    if (property.priceDisplay) {
+      return property.priceDisplay;
+    }
+
     if (isJapaneseProperty(property)) {
       // Format as 万円 (10,000 yen)
       return `${(property.price / 10000).toLocaleString()}万円`;
@@ -43,8 +48,14 @@ const PropertyList: React.FC<PropertyListProps> = ({
     console.log('Area data:', {
       areaMeters: property.areaMeters,
       areaTsubo: property.areaTsubo,
-      sqft: property.sqft
+      sqft: property.sqft,
+      sizeDisplay: property.sizeDisplay
     });
+
+    // First check if we have a display field for size
+    if (property.sizeDisplay) {
+      return property.sizeDisplay;
+    }
 
     // First check if we have area in square meters
     if (property.areaMeters) {

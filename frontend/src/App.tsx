@@ -61,6 +61,7 @@ function App() {
       <header className="app-header">
         <h1>Property Map</h1>
       </header>
+
       <main className="app-main">
         <div className="sidebar">
           <UnifiedFileUploader

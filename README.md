@@ -8,6 +8,7 @@ An interactive web application to visualize property listings on a map. Upload p
 - Property listings with details (price, bedrooms, bathrooms, square footage)
 - Upload and extract property addresses from text, PDF, and image files
 - Japanese property listing scanner with OCR capabilities
+- AI-powered property data extraction with Claude AI integration
 - Automatic coordinate mapping for Tokyo addresses by ward
 - Property details extraction for Japanese listings (price, size, layout)
 - Two-step validation process for address extraction and geolocation
@@ -123,6 +124,30 @@ For Japanese properties, the system can extract and process:
 - Price (価格) - Automatically converts from 万円 format
 - Size (面積) - Automatically converts from ㎡ to sqft
 - Floor information (階数)
+
+### AI-Powered Property Data Extraction
+
+The application uses Claude AI to enhance property data extraction:
+
+1. **How it works**:
+   - OCR extracts text from property images
+   - Claude AI analyzes the extracted text to identify property details
+   - Falls back to direct image analysis when OCR fails
+   - Provides structured data even from complex Japanese real estate listings
+
+2. **Setting up Claude AI integration**:
+   - Obtain an API key from [Anthropic](https://www.anthropic.com/)
+   - Create a `.env` file in the frontend directory with:
+     ```
+     VITE_ANTHROPIC_API_KEY=your_anthropic_api_key_here
+     ```
+   - AI features will automatically activate when the key is present
+
+3. **Benefits**:
+   - Higher accuracy for Japanese property extraction
+   - More reliable extraction of complex property details
+   - Fallback mechanisms ensure data can be extracted even from low-quality images
+   - Handles various real estate listing formats automatically
 
 ## Map Sharing
 
